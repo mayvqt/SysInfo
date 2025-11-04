@@ -67,7 +67,7 @@ type SmartAttributeDarwin struct {
 	Worst      int    `json:"worst"`
 	Threshold  int    `json:"thresh"`
 	RawValue   int64  `json:"raw"`
-	RawString  string `json:"raw"`
+	RawString  string `json:"raw_string"`
 	WhenFailed string `json:"when_failed"`
 }
 
