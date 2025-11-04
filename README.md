@@ -1,4 +1,6 @@
-﻿# SysInfo
+﻿# [![CI](https://github.com/mayvqt/sysinfo/actions/workflows/ci.yml/badge.svg)](https://github.com/mayvqt/sysinfo/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Release](https://img.shields.io/github/v/release/mayvqt/sysinfo)](https://github.com/mayvqt/sysinfo/releases) [![Go Version](https://img.shields.io/github/go-mod/go-version/mayvqt/sysinfo)](https://github.com/mayvqt/sysinfo/blob/main/go.mod)
+
+# SysInfo
 
 SysInfo is a small, cross-platform command-line tool and Go library for collecting system information and health data. It gathers CPU, memory, disk (including SMART where supported), network, process, and system metadata and outputs results in human-friendly and machine-readable formats.
 
