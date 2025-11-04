@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/mayvqt/sysinfo/src/internal/types"
+	"github.com/mayvqt/sysinfo/internal/types"
 )
 
 // SmartctlOutput represents the JSON output from smartctl

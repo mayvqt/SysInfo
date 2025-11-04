@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/mayvqt/sysinfo/src/internal/types"
+	"github.com/mayvqt/sysinfo/internal/types"
 	"github.com/olekukonko/tablewriter"
 )
 

@@ -3,8 +3,8 @@ package collector
 import (
 	"fmt"
 
-	"github.com/mayvqt/sysinfo/src/internal/types"
-	"github.com/mayvqt/sysinfo/src/internal/utils"
+	"github.com/mayvqt/sysinfo/internal/types"
+	"github.com/mayvqt/sysinfo/internal/utils"
 	"github.com/shirou/gopsutil/v3/disk"
 )
 

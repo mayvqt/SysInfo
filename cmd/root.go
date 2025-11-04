@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mayvqt/sysinfo/src/internal/collector"
-	"github.com/mayvqt/sysinfo/src/internal/config"
-	"github.com/mayvqt/sysinfo/src/internal/formatter"
+	"github.com/mayvqt/sysinfo/internal/collector"
+	"github.com/mayvqt/sysinfo/internal/config"
+	"github.com/mayvqt/sysinfo/internal/formatter"
 	"github.com/spf13/cobra"
 )
 

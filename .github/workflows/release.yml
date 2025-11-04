@@ -79,14 +79,12 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-          cache-dependency-path: src/go.sum
+          cache-dependency-path: go.sum
 
       - name: Install dependencies
-        working-directory: src
         run: go mod download
 
       - name: Run vet & tests
-        working-directory: src
         run: |
           go vet ./...
           go test ./... -v
@@ -98,19 +96,17 @@ jobs:
         run: |
           set -e
           mkdir -p releases
-          cd src
-          
+
           # Build info to embed in binaries
           BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           LDFLAGS="-s -w -X main.Version=${VERSION} -X main.Commit=${COMMIT} -X main.BuildTime=${BUILD_TIME}"
-          
-          GOOS=windows GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-windows-amd64.exe .
-          GOOS=windows GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-windows-arm64.exe .
-          GOOS=linux GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-linux-amd64 .
-          GOOS=linux GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-linux-arm64 .
-          GOOS=darwin GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-darwin-amd64 .
-          GOOS=darwin GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-darwin-arm64 .
-          cd ..
+
+          GOOS=windows GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o releases/sysinfo-windows-amd64.exe .
+          GOOS=windows GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o releases/sysinfo-windows-arm64.exe .
+          GOOS=linux GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o releases/sysinfo-linux-amd64 .
+          GOOS=linux GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o releases/sysinfo-linux-arm64 .
+          GOOS=darwin GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o releases/sysinfo-darwin-amd64 .
+          GOOS=darwin GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o releases/sysinfo-darwin-arm64 .
           sha256sum releases/* > releases/checksums.txt
 
       - name: Generate artifact attestation

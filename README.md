@@ -4,7 +4,7 @@
 
 [![Release](https://img.shields.io/github/v/release/mayvqt/sysinfo)](https://github.com/mayvqt/sysinfo/releases)
 
-[![Go Version](https://img.shields.io/github/go-mod/go-version/mayvqt/sysinfo)](https://github.com/mayvqt/sysinfo/blob/main/src/go.mod)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/mayvqt/sysinfo)](https://github.com/mayvqt/sysinfo/blob/main/go.mod)
 
 SysInfo
 ======
@@ -40,7 +40,6 @@ Quickstart (Windows)
 Open PowerShell, then:
 
 ```powershell
-cd src
 go build -o sysinfo.exe .
 .\sysinfo.exe --help
 ```

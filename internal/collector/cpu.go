@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mayvqt/sysinfo/src/internal/types"
+	"github.com/mayvqt/sysinfo/internal/types"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/load"
 )

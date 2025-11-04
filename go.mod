@@ -1,4 +1,4 @@
-module github.com/mayvqt/sysinfo/src
+module github.com/mayvqt/sysinfo
 
 go 1.21
 

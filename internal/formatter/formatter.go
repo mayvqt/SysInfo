@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/mayvqt/sysinfo/src/internal/config"
-	"github.com/mayvqt/sysinfo/src/internal/types"
+	"github.com/mayvqt/sysinfo/internal/config"
+	"github.com/mayvqt/sysinfo/internal/types"
 )
 
 // Format formats the system information according to the specified format
