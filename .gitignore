@@ -1,0 +1,49 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+*.coverage
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# IDE directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Build output
+/sysinfo
+/sysinfo.exe
+/build/
+dist/
+
+# Application output files (but allow example configs)
+*.log
+/test-output.json
+/system-info.json
+/disk-report.txt
+
+# Allow README and documentation
+!README.md
+!LICENSE
+!*.md
