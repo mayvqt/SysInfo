@@ -97,7 +97,9 @@ func waitForEnter() {
 	// This helps when the .exe is double-clicked
 	if !isTerminal() {
 		fmt.Println("\nPress Enter to exit...")
-		fmt.Scanln()
+		if _, err := fmt.Scanln(); err != nil {
+			fmt.Fprintf(os.Stderr, "Input error: %v\n", err)
+		}
 	}
 }
 

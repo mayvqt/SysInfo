@@ -6,7 +6,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/mayvqt/sysinfo/internal/types"
-	"github.com/olekukonko/tablewriter"
 )
 
 // FormatPretty formats the information with colors and tables
@@ -284,18 +283,4 @@ func truncate(s string, length int) string {
 	return s[:length-3] + "..."
 }
 
-// createTable creates a formatted table (helper for future use)
-func createTable(headers []string, rows [][]string) string {
-	var sb strings.Builder
-	tableString := &strings.Builder{}
-	table := tablewriter.NewWriter(tableString)
-	table.SetHeader(headers)
-	table.SetBorder(false)
-	table.SetColumnSeparator("")
-	table.SetRowSeparator("")
-	table.SetHeaderLine(false)
-	table.AppendBulk(rows)
-	table.Render()
-	sb.WriteString(tableString.String())
-	return sb.String()
-}
+// (removed) createTable was unused — kept tablewriter usage available if needed in future
