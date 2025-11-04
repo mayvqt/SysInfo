@@ -140,15 +140,84 @@ type DiskIOStat struct {
 
 // SMARTInfo contains SMART data for a drive
 type SMARTInfo struct {
-	Device       string            `json:"device"`
-	Serial       string            `json:"serial,omitempty"`
-	ModelFamily  string            `json:"model_family,omitempty"`
-	DeviceModel  string            `json:"device_model,omitempty"`
-	Capacity     uint64            `json:"capacity_bytes,omitempty"`
-	Healthy      bool              `json:"healthy"`
-	Temperature  int               `json:"temperature_celsius,omitempty"`
-	PowerOnHours uint64            `json:"power_on_hours,omitempty"`
-	Attributes   map[string]string `json:"attributes,omitempty"`
+	Device           string             `json:"device"`
+	Serial           string             `json:"serial,omitempty"`
+	ModelFamily      string             `json:"model_family,omitempty"`
+	DeviceModel      string             `json:"device_model,omitempty"`
+	FirmwareVersion  string             `json:"firmware_version,omitempty"`
+	Capacity         uint64             `json:"capacity_bytes,omitempty"`
+	Healthy          bool               `json:"healthy"`
+	Temperature      int                `json:"temperature_celsius,omitempty"`
+	PowerOnHours     uint64             `json:"power_on_hours,omitempty"`
+	PowerCycleCount  uint64             `json:"power_cycle_count,omitempty"`
+	RotationRate     uint32             `json:"rotation_rate,omitempty"` // 0 for SSDs, RPM for HDDs
+	FormFactor       string             `json:"form_factor,omitempty"`   // 2.5", 3.5", M.2, etc.
+	ATAVersion       string             `json:"ata_version,omitempty"`
+	SATAVersion      string             `json:"sata_version,omitempty"`
+	LocalTime        string             `json:"local_time,omitempty"`
+	Attributes       map[string]string  `json:"attributes,omitempty"`
+	DetailedAttribs  []SMARTAttribute   `json:"detailed_attributes,omitempty"`
+	ErrorLog         *SMARTErrorLog     `json:"error_log,omitempty"`
+	SelfTestLog      *SMARTSelfTestLog  `json:"self_test_log,omitempty"`
+	HealthAssessment *SMARTHealthStatus `json:"health_assessment,omitempty"`
+}
+
+// SMARTAttribute contains detailed information about a SMART attribute
+type SMARTAttribute struct {
+	ID         uint8  `json:"id"`
+	Name       string `json:"name"`
+	Flag       uint16 `json:"flag"`
+	Value      uint8  `json:"value"`       // Current normalized value
+	Worst      uint8  `json:"worst"`       // Worst value seen
+	Threshold  uint8  `json:"threshold"`   // Failure threshold
+	RawValue   uint64 `json:"raw_value"`   // Raw value
+	Type       string `json:"type"`        // Pre-fail or Old_age
+	Updated    string `json:"updated"`     // Always or Offline
+	WhenFailed string `json:"when_failed"` // Never, FAILING_NOW, In_the_past
+	RawString  string `json:"raw_string"`  // Human-readable raw value
+}
+
+// SMARTErrorLog contains SMART error log information
+type SMARTErrorLog struct {
+	ErrorCount uint64       `json:"error_count"`
+	Errors     []SMARTError `json:"errors,omitempty"`
+}
+
+// SMARTError represents a single SMART error entry
+type SMARTError struct {
+	ErrorNumber   uint64 `json:"error_number"`
+	LifetimeHours uint64 `json:"lifetime_hours"`
+	State         string `json:"state"`
+	Type          string `json:"type"`
+	Details       string `json:"details"`
+}
+
+// SMARTSelfTestLog contains SMART self-test log information
+type SMARTSelfTestLog struct {
+	TestCount uint64          `json:"test_count"`
+	Tests     []SMARTSelfTest `json:"tests,omitempty"`
+}
+
+// SMARTSelfTest represents a single self-test entry
+type SMARTSelfTest struct {
+	TestNumber      uint64 `json:"test_number"`
+	TestDescription string `json:"test_description"`
+	Status          string `json:"status"`
+	PercentComplete uint8  `json:"percent_complete"`
+	LifetimeHours   uint64 `json:"lifetime_hours"`
+	LBA             uint64 `json:"lba,omitempty"`
+}
+
+// SMARTHealthStatus contains health assessment information
+type SMARTHealthStatus struct {
+	Passed            bool     `json:"passed"`
+	OverallAssessment string   `json:"overall_assessment"` // PASS, FAIL, WARN
+	FailingAttributes []string `json:"failing_attributes,omitempty"`
+	WarningAttributes []string `json:"warning_attributes,omitempty"`
+	CriticalWarning   string   `json:"critical_warning,omitempty"`
+	PercentUsed       float64  `json:"percent_used,omitempty"`    // For SSDs
+	AvailableSpare    float64  `json:"available_spare,omitempty"` // For NVMe
+	TemperatureStatus string   `json:"temperature_status,omitempty"`
 }
 
 // NetworkData contains network information

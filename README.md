@@ -2,19 +2,23 @@
 
 # SysInfo
 
-SysInfo is a small, cross-platform command-line tool and Go library for collecting system information and health data. It gathers CPU, memory, disk (including SMART where supported), network, process, and system metadata and outputs results in human-friendly and machine-readable formats.
+SysInfo is a comprehensive, cross-platform command-line tool and Go library for collecting detailed system information and health data. It gathers CPU, memory (with physical module details), disk (including comprehensive SMART data with health assessment), network, process, and system metadata and outputs results in human-friendly and machine-readable formats.
 
 ## Highlights
 
-- Modular collectors: CPU, memory, disk (SMART optional), network, processes, and system metadata
-- Output formats: `pretty`, `text`, and `json`
-- Single binary for easy deployment and automation
-- Cross-platform: Linux, macOS and Windows (collection varies by platform)
+- **Comprehensive Data Collection**: CPU, memory modules, disk (with 70+ SMART attributes), network, processes, and system metadata
+- **SMART Health Monitoring**: Professional-grade disk health assessment with failure prediction and SSD wear tracking
+- **Multiple Output Formats**: `pretty`, `text`, and `json`
+- **Live Monitoring Mode**: Real-time system stats that update in place (like htop/top)
+- **Full System Dump**: Single command to capture everything to JSON for analysis
+- **Single Binary**: Easy deployment and automation
+- **Cross-platform**: Linux, macOS, and Windows (with platform-optimized collectors)
 
 ## Quickstart
 
 Prerequisites
-- Go 1.21 or later (building from source)
+- Go 1.24 or later (building from source)
+- For SMART data on Linux/macOS: `smartmontools` (`apt install smartmontools` or `brew install smartmontools`)
 
 Build from repository root:
 
@@ -32,43 +36,90 @@ go install github.com/mayvqt/sysinfo@latest
 Examples
 
 ```powershell
-# Pretty (default)
+# Pretty output (default)
 .\\sysinfo.exe
 
-# CPU + memory only, JSON
+# CPU + memory only, JSON format
 .\\sysinfo.exe --cpu --memory --format json
 
-# Live monitoring mode - CPU and memory (like a mini task manager)
+# Live monitoring mode - updates every 2 seconds (like task manager)
 .\\sysinfo.exe --cpu --memory --monitor
 
-# Live monitoring with 5-second update interval
+# Live monitoring with custom interval
 .\\sysinfo.exe --cpu --memory --process --monitor --interval 5
 
-# Save full JSON report
-.\\sysinfo.exe --format json --output full-report.json
+# Comprehensive SMART data with health assessment
+.\\sysinfo.exe --smart --format json
+
+# Full system dump - captures EVERYTHING to JSON file
+.\\sysinfo.exe --full-dump
+
+# Save custom report
+.\\sysinfo.exe --cpu --memory --disk --smart --format json --output report.json
 ```
 
 ## Flags
 
+### Module Selection
 - `--all` (default): collect all modules
-- `--system`: host/OS/kernel/uptime
-- `--cpu`: CPU info and per-core usage
-- `--memory`: memory and swap info
-- `--disk`: partitions and disk info (SMART optional)
-- `--network`: interface statistics
-- `--process`: process summaries
-- `--format`: `pretty|text|json`
-- `--output`: write output to file
-- `--monitor`, `-m`: live monitoring mode (continuously update output)
+- `--system`: host/OS/kernel/uptime/process count
+- `--cpu`: CPU info, per-core usage, flags, microcode
+- `--memory`: memory/swap info + physical RAM module details (type, speed, manufacturer)
+- `--disk`: partitions, physical disks, and I/O stats
+- `--network`: interface statistics and connection counts
+- `--process`: process summaries (top by CPU and memory)
+- `--smart`: comprehensive SMART disk data with health assessment (requires elevation)
+
+### Output Options
+- `--format`, `-f`: output format: `pretty|text|json` (default: pretty)
+- `--output`, `-o`: write output to file instead of stdout
+- `--verbose`, `-v`: enable verbose logging
+- `--full-dump`: collect ALL system info and save to `sysinfo_dump.json` (includes everything)
+
+### Monitor Mode
+- `--monitor`, `-m`: enable live monitoring mode (continuous updates)
 - `--interval`, `-i`: update interval in seconds for monitor mode (default: 2)
-- `--verbose`: enable verbose logging
 
 Run `--help` for the complete flag list and examples.
 
-## Platform notes
+## SMART Data Features
 
-- SMART: requires elevation (Administrator/root) and `smartmontools` on Linux/macOS. On Windows SMART data may be available via WMI but also requires elevation.
-- Load averages: not available on Windows (Unix concept).
+SysInfo provides professional-grade SMART monitoring with:
+
+**Comprehensive Attributes** (70+ tracked):
+- All standard HDD attributes (Read Error Rate, Reallocated Sectors, Power On Hours, etc.)
+- SSD-specific attributes (Wear Leveling, Program/Erase Fail Counts, Life Remaining, etc.)
+- Vendor-specific attributes (WD, Seagate, Samsung, Intel, Crucial, Micron, SandForce, etc.)
+
+**Detailed Information Per Drive**:
+- Firmware version, rotation rate (RPM for HDD, 0 for SSD)
+- Disk geometry and form factor
+- Per-attribute details: ID, current value, worst value, threshold, raw value
+- Human-readable value formatting (hours/days, GB/TB, temperature, percentages)
+
+**Health Assessment**:
+- Overall status (PASS/WARN/FAIL)
+- Failing and warning attribute lists
+- SSD wear level and life remaining
+- Temperature status (NORMAL/WARM/HIGH/CRITICAL)
+- Critical attribute monitoring (reallocated sectors, pending sectors, uncorrectable errors, etc.)
+
+## Platform Notes
+
+**Windows**:
+- SMART data via WMI (requires Administrator)
+- Physical memory module info via WMI
+- Full support for all features
+
+**Linux**:
+- SMART data requires `smartmontools` and root/sudo
+- Memory module info requires dmidecode (future enhancement)
+- Load averages fully supported
+
+**macOS**:
+- SMART data requires `smartmontools` (brew install) and sudo
+- Memory module info via system_profiler (future enhancement)
+- NVMe/Apple Silicon SSD support included
 
 ## Development
 
@@ -78,26 +129,34 @@ Run `--help` for the complete flag list and examples.
 Dev commands
 
 ```powershell
-# fetch deps
+# Fetch dependencies
 go mod download
 
-# vet + tests
-go vet ./...
-go test ./... -v
+# Run tests with coverage
+go test ./... -v -cover
 
-# optional linters
-# golangci-lint run
+# Run linters
+go vet ./...
+
+# Build
+go build -o sysinfo.exe .
+
+# Run comprehensive dump
+.\\sysinfo.exe --full-dump
 ```
 
 ## CI & Releases
 
-Workflows are in `.github/workflows/`. The release workflow builds cross-platform binaries and places them in `releases/`.
+Workflows are in `.github/workflows/`:
+- **CI**: Automated testing on push/PR with coverage reporting (Codecov)
+- **Release**: Cross-platform binaries (Windows, Linux, macOS) on version tags
 
 ## Contributing
 
 - Run `go fmt` before submitting PRs
 - Keep changes small and cross-platform where possible
 - Include tests for new behavior
+- Update README for new features
 
 ## License
 

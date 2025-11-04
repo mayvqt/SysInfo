@@ -51,14 +51,6 @@ func CollectMemory() (*types.MemoryData, error) {
 // collectMemoryModules attempts to collect physical RAM module information
 // This requires platform-specific implementation or external tools
 func collectMemoryModules() []types.MemoryModule {
-	// This is a placeholder - full implementation would require:
-	// - Windows: WMI queries to Win32_PhysicalMemory
-	// - Linux: dmidecode or /sys/devices/system/memory
-	// - macOS: system_profiler SPMemoryDataType
-	modules := make([]types.MemoryModule, 0)
-
-	// Platform-specific collection would go here
-	// For now, return empty to avoid errors
-
-	return modules
+	// Call platform-specific implementation if available
+	return collectMemoryModulesPlatform()
 }

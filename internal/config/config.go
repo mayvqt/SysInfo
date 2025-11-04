@@ -17,6 +17,9 @@ type Config struct {
 	// Monitor interval in seconds
 	MonitorInterval int
 
+	// Full dump mode - collect everything and save to JSON file
+	FullDumpToFile bool
+
 	// Module selection flags
 	Modules ModuleConfig
 }

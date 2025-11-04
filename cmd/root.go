@@ -32,6 +32,9 @@ func init() {
 	rootCmd.Flags().StringVarP(&cfg.OutputFile, "output", "o", "", "Output file path (default: stdout)")
 	rootCmd.Flags().BoolVarP(&cfg.Verbose, "verbose", "v", false, "Verbose output")
 
+	// Full dump mode
+	rootCmd.Flags().BoolVar(&cfg.FullDumpToFile, "full-dump", false, "Collect ALL system information and save to sysinfo_dump.json")
+
 	// Monitor mode options
 	rootCmd.Flags().BoolVarP(&cfg.Monitor, "monitor", "m", false, "Enable live monitoring mode (continuously update)")
 	rootCmd.Flags().IntVarP(&cfg.MonitorInterval, "interval", "i", 2, "Update interval in seconds for monitor mode")
@@ -52,6 +55,11 @@ func Execute() error {
 }
 
 func runSysInfo(cmd *cobra.Command, args []string) error {
+	// Handle full dump mode
+	if cfg.FullDumpToFile {
+		return runFullDump()
+	}
+
 	// If any specific module is selected, disable --all
 	if cfg.Modules.System || cfg.Modules.CPU || cfg.Modules.Memory ||
 		cfg.Modules.Disk || cfg.Modules.Network || cfg.Modules.Process || cfg.Modules.SMART {
@@ -105,6 +113,73 @@ func runSysInfo(cmd *cobra.Command, args []string) error {
 
 	// Check if we should pause (when double-clicked, not running from terminal)
 	waitForEnter()
+
+	return nil
+}
+
+// runFullDump collects all possible system information and saves to JSON file
+func runFullDump() error {
+	fmt.Fprintf(os.Stderr, "Starting comprehensive system information dump...\n")
+	fmt.Fprintf(os.Stderr, "This will collect ALL available data (may take a moment)...\n\n")
+
+	// Create a temporary config to collect everything
+	dumpConfig := config.NewConfig()
+	dumpConfig.Modules.All = true
+	dumpConfig.Modules.System = true
+	dumpConfig.Modules.CPU = true
+	dumpConfig.Modules.Memory = true
+	dumpConfig.Modules.Disk = true
+	dumpConfig.Modules.Network = true
+	dumpConfig.Modules.Process = true
+	dumpConfig.Modules.SMART = true
+	dumpConfig.Format = "json"
+
+	fmt.Fprintf(os.Stderr, "✓ Collecting system information...\n")
+	info, err := collector.Collect(dumpConfig)
+	if err != nil {
+		return fmt.Errorf("failed to collect system information: %w", err)
+	}
+
+	fmt.Fprintf(os.Stderr, "✓ Formatting data to JSON...\n")
+	output, err := formatter.Format(info, dumpConfig)
+	if err != nil {
+		return fmt.Errorf("failed to format output: %w", err)
+	}
+
+	// Determine output filename (next to executable)
+	filename := "sysinfo_dump.json"
+
+	fmt.Fprintf(os.Stderr, "✓ Writing to file: %s\n", filename)
+	err = os.WriteFile(filename, []byte(output), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write dump file: %w", err)
+	}
+
+	fileInfo, _ := os.Stat(filename)
+	sizeKB := float64(fileInfo.Size()) / 1024.0
+	sizeMB := sizeKB / 1024.0
+
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "═══════════════════════════════════════════════════════════════\n")
+	fmt.Fprintf(os.Stderr, "  FULL SYSTEM DUMP COMPLETE\n")
+	fmt.Fprintf(os.Stderr, "═══════════════════════════════════════════════════════════════\n")
+	fmt.Fprintf(os.Stderr, "  File: %s\n", filename)
+	if sizeMB >= 1.0 {
+		fmt.Fprintf(os.Stderr, "  Size: %.2f MB\n", sizeMB)
+	} else {
+		fmt.Fprintf(os.Stderr, "  Size: %.2f KB\n", sizeKB)
+	}
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "  Includes:\n")
+	fmt.Fprintf(os.Stderr, "    • System information\n")
+	fmt.Fprintf(os.Stderr, "    • Detailed CPU data\n")
+	fmt.Fprintf(os.Stderr, "    • Memory information with physical modules\n")
+	fmt.Fprintf(os.Stderr, "    • Disk partitions and physical disks\n")
+	fmt.Fprintf(os.Stderr, "    • Network interfaces and statistics\n")
+	fmt.Fprintf(os.Stderr, "    • Process information\n")
+	fmt.Fprintf(os.Stderr, "    • Comprehensive SMART data with health assessment\n")
+	fmt.Fprintf(os.Stderr, "═══════════════════════════════════════════════════════════════\n")
+	fmt.Fprintf(os.Stderr, "\n")
 
 	return nil
 }

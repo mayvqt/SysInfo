@@ -12,7 +12,7 @@ import (
 	"github.com/mayvqt/sysinfo/internal/types"
 )
 
-// SmartctlOutput represents the JSON output from smartctl (same as Linux)
+// macOS uses the same smartctl JSON format as Linux
 type SmartctlOutputDarwin struct {
 	Device struct {
 		Name     string `json:"name"`
@@ -20,15 +20,23 @@ type SmartctlOutputDarwin struct {
 		Type     string `json:"type"`
 		Protocol string `json:"protocol"`
 	} `json:"device"`
-	ModelFamily   string              `json:"model_family"`
-	ModelName     string              `json:"model_name"`
-	SerialNumber  string              `json:"serial_number"`
-	UserCapacity  UserCapacityDarwin  `json:"user_capacity"`
-	SmartStatus   SmartStatusDarwin   `json:"smart_status"`
-	Temperature   TemperatureDarwin   `json:"temperature"`
-	PowerOnTime   PowerOnTimeDarwin   `json:"power_on_time"`
-	AtaSmartAttrs AtaSmartAttrsDarwin `json:"ata_smart_attributes"`
-	NvmeSmartLog  NvmeSmartLogDarwin  `json:"nvme_smart_health_information_log"`
+	ModelFamily     string              `json:"model_family"`
+	ModelName       string              `json:"model_name"`
+	SerialNumber    string              `json:"serial_number"`
+	FirmwareVersion string              `json:"firmware_version"`
+	UserCapacity    UserCapacityDarwin  `json:"user_capacity"`
+	SmartStatus     SmartStatusDarwin   `json:"smart_status"`
+	Temperature     TemperatureDarwin   `json:"temperature"`
+	PowerOnTime     PowerOnTimeDarwin   `json:"power_on_time"`
+	AtaSmartAttrs   AtaSmartAttrsDarwin `json:"ata_smart_attributes"`
+	NvmeSmartLog    NvmeSmartLogDarwin  `json:"nvme_smart_health_information_log"`
+	RotationRate    int                 `json:"rotation_rate"`
+	FormFactor      FormFactorDarwin    `json:"form_factor"`
+}
+
+type FormFactorDarwin struct {
+	AtaValue int    `json:"ata_value"`
+	Name     string `json:"name"`
 }
 
 type UserCapacityDarwin struct {
@@ -150,13 +158,17 @@ func collectDeviceSMARTDarwin(device string) *types.SMARTInfo {
 	}
 
 	info := &types.SMARTInfo{
-		Device:      device,
-		ModelFamily: smartOutput.ModelFamily,
-		DeviceModel: smartOutput.ModelName,
-		Serial:      smartOutput.SerialNumber,
-		Capacity:    smartOutput.UserCapacity.Bytes,
-		Healthy:     smartOutput.SmartStatus.Passed,
-		Attributes:  make(map[string]string),
+		Device:          device,
+		ModelFamily:     smartOutput.ModelFamily,
+		DeviceModel:     smartOutput.ModelName,
+		Serial:          smartOutput.SerialNumber,
+		FirmwareVersion: smartOutput.FirmwareVersion,
+		Capacity:        smartOutput.UserCapacity.Bytes,
+		Healthy:         smartOutput.SmartStatus.Passed,
+		RotationRate:    uint32(smartOutput.RotationRate),
+		FormFactor:      smartOutput.FormFactor.Name,
+		Attributes:      make(map[string]string),
+		DetailedAttribs: make([]types.SMARTAttribute, 0),
 	}
 
 	// Extract temperature
@@ -177,23 +189,87 @@ func collectDeviceSMARTDarwin(device string) *types.SMARTInfo {
 		info.Attributes["Data_Units_Written"] = fmt.Sprintf("%d", smartOutput.NvmeSmartLog.DataUnitsWritten)
 	}
 
-	// Parse ATA SMART attributes
+	// Parse ATA SMART attributes with detailed information
+	failingAttrs := make([]string, 0)
+	warningAttrs := make([]string, 0)
+
 	for _, attr := range smartOutput.AtaSmartAttrs.Table {
 		info.Attributes[attr.Name] = fmt.Sprintf("%d", attr.RawValue)
 		info.Attributes[attr.Name+"_Current"] = fmt.Sprintf("%d", attr.Value)
 		info.Attributes[attr.Name+"_Worst"] = fmt.Sprintf("%d", attr.Worst)
 		info.Attributes[attr.Name+"_Threshold"] = fmt.Sprintf("%d", attr.Threshold)
 
+		// Create detailed attribute
+		detailedAttr := types.SMARTAttribute{
+			ID:         uint8(attr.ID),
+			Name:       attr.Name,
+			Value:      uint8(attr.Value),
+			Worst:      uint8(attr.Worst),
+			Threshold:  uint8(attr.Threshold),
+			RawValue:   uint64(attr.RawValue),
+			RawString:  attr.RawString,
+			WhenFailed: attr.WhenFailed,
+			Type:       "Old_age",
+			Updated:    "Always",
+		}
+		info.DetailedAttribs = append(info.DetailedAttribs, detailedAttr)
+
+		// Check for failures
 		if attr.WhenFailed != "" && attr.WhenFailed != "-" {
 			info.Healthy = false
+			if attr.WhenFailed == "FAILING_NOW" || attr.WhenFailed == "now" {
+				failingAttrs = append(failingAttrs, fmt.Sprintf("%s (Value: %d, Threshold: %d)",
+					attr.Name, attr.Value, attr.Threshold))
+			}
+		}
+
+		// Check for critical attributes with non-zero values
+		criticalAttrs := map[string]bool{
+			"Reallocated_Sector_Ct":  true,
+			"Current_Pending_Sector": true,
+			"Offline_Uncorrectable":  true,
+			"Reported_Uncorrect":     true,
+		}
+		if criticalAttrs[attr.Name] && attr.RawValue > 0 {
+			warningAttrs = append(warningAttrs, fmt.Sprintf("%s = %d", attr.Name, attr.RawValue))
 		}
 
 		// Extract common values
 		switch attr.ID {
 		case 9: // Power-on hours
 			info.PowerOnHours = uint64(attr.RawValue)
+		case 12: // Power cycle count
+			info.PowerCycleCount = uint64(attr.RawValue)
 		case 194: // Temperature
 			info.Temperature = int(attr.RawValue)
+		}
+	}
+
+	// Create health assessment
+	if len(failingAttrs) > 0 || len(warningAttrs) > 0 || !smartOutput.SmartStatus.Passed {
+		info.HealthAssessment = &types.SMARTHealthStatus{
+			Passed:            smartOutput.SmartStatus.Passed,
+			FailingAttributes: failingAttrs,
+			WarningAttributes: warningAttrs,
+		}
+
+		if len(failingAttrs) > 0 {
+			info.HealthAssessment.OverallAssessment = "FAIL"
+		} else if len(warningAttrs) > 0 {
+			info.HealthAssessment.OverallAssessment = "WARN"
+		} else {
+			info.HealthAssessment.OverallAssessment = "PASS"
+		}
+
+		// Temperature assessment
+		if info.Temperature > 70 {
+			info.HealthAssessment.TemperatureStatus = "CRITICAL"
+		} else if info.Temperature > 60 {
+			info.HealthAssessment.TemperatureStatus = "HIGH"
+		} else if info.Temperature > 45 {
+			info.HealthAssessment.TemperatureStatus = "WARM"
+		} else if info.Temperature > 0 {
+			info.HealthAssessment.TemperatureStatus = "NORMAL"
 		}
 	}
 
