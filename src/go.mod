@@ -1,4 +1,4 @@
-module github.com/mayvqt/sysinfo
+module github.com/mayvqt/sysinfo/src
 
 go 1.21
 
@@ -7,6 +7,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/shirou/gopsutil/v3 v3.23.11
 	github.com/spf13/cobra v1.8.0
+	github.com/yusufpapurcu/wmi v1.2.4
 )
 
 require (
@@ -21,6 +22,5 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
-	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 )

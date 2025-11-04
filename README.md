@@ -48,7 +48,7 @@ go build -o sysinfo.exe .
 Or install with `go install` (Go 1.20+):
 
 ```powershell
-go install github.com/mayvqt/sysinfo/src@latest
+go install github.com/mayvqt/sysinfo@latest
 ```
 
 Basic usage

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mayvqt/sysinfo/cmd"
+	"github.com/mayvqt/sysinfo/src/cmd"
 )
 
 func main() {
