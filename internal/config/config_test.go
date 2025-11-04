@@ -23,6 +23,14 @@ func TestNewConfig(t *testing.T) {
 		t.Error("Default verbose = true; want false")
 	}
 
+	if cfg.Monitor {
+		t.Error("Default monitor = true; want false")
+	}
+
+	if cfg.MonitorInterval != 2 {
+		t.Errorf("Default monitor interval = %d; want 2", cfg.MonitorInterval)
+	}
+
 	if !cfg.Modules.All {
 		t.Error("Default modules.All = false; want true")
 	}
@@ -226,5 +234,54 @@ func TestConfigFields(t *testing.T) {
 
 	if cfg.ShouldCollect("memory") != false {
 		t.Error("ShouldCollect(memory) = true; want false")
+	}
+}
+
+func TestMonitorModeConfig(t *testing.T) {
+	tests := []struct {
+		name            string
+		monitor         bool
+		monitorInterval int
+		wantMonitor     bool
+		wantInterval    int
+	}{
+		{
+			name:            "monitor enabled with default interval",
+			monitor:         true,
+			monitorInterval: 2,
+			wantMonitor:     true,
+			wantInterval:    2,
+		},
+		{
+			name:            "monitor enabled with custom interval",
+			monitor:         true,
+			monitorInterval: 5,
+			wantMonitor:     true,
+			wantInterval:    5,
+		},
+		{
+			name:            "monitor disabled",
+			monitor:         false,
+			monitorInterval: 2,
+			wantMonitor:     false,
+			wantInterval:    2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &Config{
+				Monitor:         tt.monitor,
+				MonitorInterval: tt.monitorInterval,
+			}
+
+			if cfg.Monitor != tt.wantMonitor {
+				t.Errorf("Monitor = %v; want %v", cfg.Monitor, tt.wantMonitor)
+			}
+
+			if cfg.MonitorInterval != tt.wantInterval {
+				t.Errorf("MonitorInterval = %d; want %d", cfg.MonitorInterval, tt.wantInterval)
+			}
+		})
 	}
 }

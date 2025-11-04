@@ -38,6 +38,12 @@ Examples
 # CPU + memory only, JSON
 .\\sysinfo.exe --cpu --memory --format json
 
+# Live monitoring mode - CPU and memory (like a mini task manager)
+.\\sysinfo.exe --cpu --memory --monitor
+
+# Live monitoring with 5-second update interval
+.\\sysinfo.exe --cpu --memory --process --monitor --interval 5
+
 # Save full JSON report
 .\\sysinfo.exe --format json --output full-report.json
 ```
@@ -53,6 +59,8 @@ Examples
 - `--process`: process summaries
 - `--format`: `pretty|text|json`
 - `--output`: write output to file
+- `--monitor`, `-m`: live monitoring mode (continuously update output)
+- `--interval`, `-i`: update interval in seconds for monitor mode (default: 2)
 - `--verbose`: enable verbose logging
 
 Run `--help` for the complete flag list and examples.

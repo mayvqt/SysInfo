@@ -3,6 +3,9 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/mayvqt/sysinfo/internal/collector"
 	"github.com/mayvqt/sysinfo/internal/config"
@@ -29,6 +32,10 @@ func init() {
 	rootCmd.Flags().StringVarP(&cfg.OutputFile, "output", "o", "", "Output file path (default: stdout)")
 	rootCmd.Flags().BoolVarP(&cfg.Verbose, "verbose", "v", false, "Verbose output")
 
+	// Monitor mode options
+	rootCmd.Flags().BoolVarP(&cfg.Monitor, "monitor", "m", false, "Enable live monitoring mode (continuously update)")
+	rootCmd.Flags().IntVarP(&cfg.MonitorInterval, "interval", "i", 2, "Update interval in seconds for monitor mode")
+
 	// Module selection flags
 	rootCmd.Flags().BoolVar(&cfg.Modules.All, "all", true, "Collect all information")
 	rootCmd.Flags().BoolVar(&cfg.Modules.System, "system", false, "Collect system information")
@@ -49,6 +56,17 @@ func runSysInfo(cmd *cobra.Command, args []string) error {
 	if cfg.Modules.System || cfg.Modules.CPU || cfg.Modules.Memory ||
 		cfg.Modules.Disk || cfg.Modules.Network || cfg.Modules.Process || cfg.Modules.SMART {
 		cfg.Modules.All = false
+	}
+
+	// Validate monitor mode
+	if cfg.Monitor {
+		if cfg.OutputFile != "" {
+			return fmt.Errorf("monitor mode cannot be used with file output")
+		}
+		if cfg.MonitorInterval < 1 {
+			cfg.MonitorInterval = 1
+		}
+		return runMonitorMode()
 	}
 
 	if cfg.Verbose {
@@ -87,6 +105,76 @@ func runSysInfo(cmd *cobra.Command, args []string) error {
 
 	// Check if we should pause (when double-clicked, not running from terminal)
 	waitForEnter()
+
+	return nil
+}
+
+// runMonitorMode continuously updates the output at the specified interval
+func runMonitorMode() error {
+	// Setup signal handling for graceful shutdown
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	// Create a ticker for periodic updates
+	ticker := time.NewTicker(time.Duration(cfg.MonitorInterval) * time.Second)
+	defer ticker.Stop()
+
+	// Hide cursor for cleaner display
+	fmt.Print("\033[?25l")
+	defer fmt.Print("\033[?25h") // Show cursor on exit
+
+	fmt.Fprintf(os.Stderr, "Live monitoring mode - Press Ctrl+C to exit\n")
+	fmt.Fprintf(os.Stderr, "Update interval: %d second(s)\n\n", cfg.MonitorInterval)
+	time.Sleep(500 * time.Millisecond) // Brief pause so user can see the message
+
+	// Display initial data immediately
+	if err := displayLiveData(true); err != nil {
+		fmt.Print("\033[?25h") // Show cursor on error
+		return err
+	}
+
+	// Main monitor loop
+	for {
+		select {
+		case <-ticker.C:
+			if err := displayLiveData(false); err != nil {
+				fmt.Print("\033[?25h") // Show cursor on error
+				return err
+			}
+		case <-sigChan:
+			fmt.Print("\033[?25h") // Show cursor
+			fmt.Fprintf(os.Stderr, "\n\nMonitoring stopped.\n")
+			return nil
+		}
+	}
+}
+
+// displayLiveData collects and displays current system information
+func displayLiveData(isFirstUpdate bool) error {
+	// Collect system information (this might take time)
+	info, err := collector.Collect(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to collect system information: %w", err)
+	}
+
+	// Format output (buffer everything first)
+	output, err := formatter.Format(info, cfg)
+	if err != nil {
+		return fmt.Errorf("failed to format output: %w", err)
+	}
+
+	// Now that we have all the data, update the display atomically
+	if !isFirstUpdate {
+		// Clear the screen completely and move cursor to home
+		// Using the full sequence for better Windows PowerShell compatibility
+		fmt.Print("\033[2J\033[H")
+	}
+
+	// Print the complete output all at once
+	fmt.Print(output)
+
+	// Ensure output is flushed immediately
+	os.Stdout.Sync()
 
 	return nil
 }

@@ -11,6 +11,12 @@ type Config struct {
 	// Verbosity level
 	Verbose bool
 
+	// Monitor mode - continuously update output
+	Monitor bool
+
+	// Monitor interval in seconds
+	MonitorInterval int
+
 	// Module selection flags
 	Modules ModuleConfig
 }
@@ -30,9 +36,11 @@ type ModuleConfig struct {
 // NewConfig creates a default configuration
 func NewConfig() *Config {
 	return &Config{
-		Format:     "pretty",
-		OutputFile: "",
-		Verbose:    false,
+		Format:          "pretty",
+		OutputFile:      "",
+		Verbose:         false,
+		Monitor:         false,
+		MonitorInterval: 2,
 		Modules: ModuleConfig{
 			All: true,
 		},
