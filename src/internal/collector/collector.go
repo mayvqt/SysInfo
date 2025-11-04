@@ -3,8 +3,8 @@ package collector
 import (
 	"time"
 
-	"github.com/mayvqt/sysinfo/internal/config"
-	"github.com/mayvqt/sysinfo/internal/types"
+	"github.com/mayvqt/sysinfo/src/internal/config"
+	"github.com/mayvqt/sysinfo/src/internal/types"
 )
 
 // Collect gathers all requested system information

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mayvqt/sysinfo/internal/types"
+	"github.com/mayvqt/sysinfo/src/internal/types"
 )
 
 // FormatText formats the information as plain text

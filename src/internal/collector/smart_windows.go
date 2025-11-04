@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mayvqt/sysinfo/internal/types"
+	"github.com/mayvqt/sysinfo/src/internal/types"
 	"github.com/yusufpapurcu/wmi"
 )
 

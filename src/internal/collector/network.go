@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/mayvqt/sysinfo/internal/types"
+	"github.com/mayvqt/sysinfo/src/internal/types"
 	psnet "github.com/shirou/gopsutil/v3/net"
 )
 
