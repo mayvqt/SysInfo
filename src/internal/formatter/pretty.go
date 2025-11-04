@@ -1,0 +1,205 @@
+package formatter
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/fatih/color"
+	"github.com/mayvqt/sysinfo/internal/types"
+	"github.com/olekukonko/tablewriter"
+)
+
+// FormatPretty formats the information with colors and tables
+func FormatPretty(info *types.SystemInfo) string {
+	var sb strings.Builder
+
+	// Color definitions
+	headerColor := color.New(color.FgCyan, color.Bold)
+	labelColor := color.New(color.FgGreen)
+	valueColor := color.New(color.FgWhite)
+
+	// Timestamp
+	sb.WriteString(headerColor.Sprintf("═══════════════════════════════════════════════════════════════\n"))
+	sb.WriteString(headerColor.Sprintf("  SYSTEM INFORMATION REPORT\n"))
+	sb.WriteString(headerColor.Sprintf("═══════════════════════════════════════════════════════════════\n"))
+	sb.WriteString(fmt.Sprintf("%s %s\n\n", labelColor.Sprint("Timestamp:"), valueColor.Sprint(info.Timestamp.Format("2006-01-02 15:04:05"))))
+
+	// System information
+	if info.System != nil {
+		sb.WriteString(headerColor.Sprintf("┌─ SYSTEM ─────────────────────────────────────────────────────┐\n"))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Hostname:"), valueColor.Sprint(info.System.Hostname)))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("OS:"), valueColor.Sprint(info.System.OS)))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s %s\n", labelColor.Sprint("Platform:"), valueColor.Sprint(info.System.Platform), valueColor.Sprint(info.System.PlatformVersion)))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Kernel:"), valueColor.Sprintf("%s (%s)", info.System.KernelVersion, info.System.KernelArch)))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Uptime:"), valueColor.Sprint(info.System.UptimeFormatted)))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Processes:"), valueColor.Sprintf("%d", info.System.Procs)))
+		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n\n"))
+	}
+
+	// CPU information
+	if info.CPU != nil {
+		sb.WriteString(headerColor.Sprintf("┌─ CPU ────────────────────────────────────────────────────────┐\n"))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Model:"), valueColor.Sprint(info.CPU.ModelName)))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Vendor:"), valueColor.Sprint(info.CPU.Vendor)))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Physical Cores:"), valueColor.Sprintf("%d", info.CPU.Cores)))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Logical CPUs:"), valueColor.Sprintf("%d", info.CPU.LogicalCPUs)))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Frequency:"), valueColor.Sprintf("%.2f MHz", info.CPU.MHz)))
+
+		if info.CPU.LoadAvg != nil {
+			sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Load Average:"),
+				valueColor.Sprintf("%.2f, %.2f, %.2f", info.CPU.LoadAvg.Load1, info.CPU.LoadAvg.Load5, info.CPU.LoadAvg.Load15)))
+		}
+
+		if len(info.CPU.Usage) > 0 {
+			sb.WriteString(fmt.Sprintf("│ %-20s\n", labelColor.Sprint("Core Usage:")))
+			for i, usage := range info.CPU.Usage {
+				bar := createProgressBar(usage, 20)
+				sb.WriteString(fmt.Sprintf("│   Core %-2d: %s %s\n", i, bar, valueColor.Sprintf("%.1f%%", usage)))
+			}
+		}
+		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n\n"))
+	}
+
+	// Memory information
+	if info.Memory != nil {
+		sb.WriteString(headerColor.Sprintf("┌─ MEMORY ─────────────────────────────────────────────────────┐\n"))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Total:"), valueColor.Sprint(info.Memory.TotalFormatted)))
+
+		memBar := createProgressBar(info.Memory.UsedPercent, 30)
+		sb.WriteString(fmt.Sprintf("│ %-20s %s %s\n", labelColor.Sprint("Used:"),
+			memBar, valueColor.Sprintf("%s (%.1f%%)", info.Memory.UsedFormatted, info.Memory.UsedPercent)))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Free:"), valueColor.Sprint(info.Memory.FreeFormatted)))
+
+		if info.Memory.SwapTotal > 0 {
+			sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Swap Total:"), valueColor.Sprint(formatBytes(info.Memory.SwapTotal))))
+			swapBar := createProgressBar(info.Memory.SwapPercent, 30)
+			sb.WriteString(fmt.Sprintf("│ %-20s %s %s\n", labelColor.Sprint("Swap Used:"),
+				swapBar, valueColor.Sprintf("%s (%.1f%%)", formatBytes(info.Memory.SwapUsed), info.Memory.SwapPercent)))
+		}
+		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n\n"))
+	}
+
+	// Disk information
+	if info.Disk != nil && len(info.Disk.Partitions) > 0 {
+		sb.WriteString(headerColor.Sprintf("┌─ DISKS ──────────────────────────────────────────────────────┐\n"))
+		for _, part := range info.Disk.Partitions {
+			sb.WriteString(fmt.Sprintf("│ %s\n", valueColor.Sprintf("%s (%s)", part.Device, part.MountPoint)))
+			sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Type:"), valueColor.Sprint(part.FSType)))
+			sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Total:"), valueColor.Sprint(part.TotalFormatted)))
+
+			diskBar := createProgressBar(part.UsedPercent, 28)
+			sb.WriteString(fmt.Sprintf("│   %-18s %s %s\n", labelColor.Sprint("Used:"),
+				diskBar, valueColor.Sprintf("%s (%.1f%%)", part.UsedFormatted, part.UsedPercent)))
+			sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Free:"), valueColor.Sprint(part.FreeFormatted)))
+			sb.WriteString("│\n")
+		}
+		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n\n"))
+	}
+
+	// Network information
+	if info.Network != nil && len(info.Network.Interfaces) > 0 {
+		sb.WriteString(headerColor.Sprintf("┌─ NETWORK ────────────────────────────────────────────────────┐\n"))
+		for _, iface := range info.Network.Interfaces {
+			sb.WriteString(fmt.Sprintf("│ %s\n", valueColor.Sprint(iface.Name)))
+			if iface.HardwareAddr != "" {
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("MAC:"), valueColor.Sprint(iface.HardwareAddr)))
+			}
+			if len(iface.Addresses) > 0 {
+				for i, addr := range iface.Addresses {
+					if i == 0 {
+						sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("IP:"), valueColor.Sprint(addr)))
+					} else {
+						sb.WriteString(fmt.Sprintf("│   %-18s %s\n", "", valueColor.Sprint(addr)))
+					}
+				}
+			}
+			if iface.BytesSent > 0 || iface.BytesRecv > 0 {
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Sent:"), valueColor.Sprint(formatBytes(iface.BytesSent))))
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Received:"), valueColor.Sprint(formatBytes(iface.BytesRecv))))
+			}
+			sb.WriteString("│\n")
+		}
+		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n\n"))
+	}
+
+	// Process information
+	if info.Processes != nil {
+		sb.WriteString(headerColor.Sprintf("┌─ PROCESSES ──────────────────────────────────────────────────┐\n"))
+		sb.WriteString(fmt.Sprintf("│ %-20s %s (Running: %s, Sleeping: %s)\n",
+			labelColor.Sprint("Total:"),
+			valueColor.Sprintf("%d", info.Processes.TotalCount),
+			valueColor.Sprintf("%d", info.Processes.Running),
+			valueColor.Sprintf("%d", info.Processes.Sleeping)))
+
+		if len(info.Processes.TopByMemory) > 0 {
+			sb.WriteString(fmt.Sprintf("│\n│ %s\n", labelColor.Sprint("Top by Memory:")))
+			for i, proc := range info.Processes.TopByMemory {
+				if i >= 5 {
+					break
+				}
+				sb.WriteString(fmt.Sprintf("│   %s\n", valueColor.Sprintf("%-30s %6d MB  %.1f%%",
+					truncate(proc.Name, 30), proc.MemoryMB, proc.MemoryPercent)))
+			}
+		}
+
+		if len(info.Processes.TopByCPU) > 0 {
+			sb.WriteString(fmt.Sprintf("│\n│ %s\n", labelColor.Sprint("Top by CPU:")))
+			for i, proc := range info.Processes.TopByCPU {
+				if i >= 5 {
+					break
+				}
+				sb.WriteString(fmt.Sprintf("│   %s\n", valueColor.Sprintf("%-30s %6.1f%%",
+					truncate(proc.Name, 30), proc.CPUPercent)))
+			}
+		}
+
+		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n"))
+	}
+
+	return sb.String()
+}
+
+// createProgressBar creates a text progress bar
+func createProgressBar(percent float64, width int) string {
+	filled := int(percent / 100.0 * float64(width))
+	if filled > width {
+		filled = width
+	}
+	if filled < 0 {
+		filled = 0
+	}
+
+	bar := strings.Repeat("█", filled) + strings.Repeat("░", width-filled)
+
+	// Color the bar based on usage
+	if percent > 90 {
+		return color.New(color.FgRed).Sprint(bar)
+	} else if percent > 70 {
+		return color.New(color.FgYellow).Sprint(bar)
+	}
+	return color.New(color.FgGreen).Sprint(bar)
+}
+
+// truncate truncates a string to the specified length
+func truncate(s string, length int) string {
+	if len(s) <= length {
+		return s
+	}
+	return s[:length-3] + "..."
+}
+
+// createTable creates a formatted table (helper for future use)
+func createTable(headers []string, rows [][]string) string {
+	var sb strings.Builder
+	tableString := &strings.Builder{}
+	table := tablewriter.NewWriter(tableString)
+	table.SetHeader(headers)
+	table.SetBorder(false)
+	table.SetColumnSeparator("")
+	table.SetRowSeparator("")
+	table.SetHeaderLine(false)
+	table.AppendBulk(rows)
+	table.Render()
+	sb.WriteString(tableString.String())
+	return sb.String()
+}
