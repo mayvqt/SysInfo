@@ -1,25 +1,40 @@
-# Binaries for programs and plugins
+# Binaries for programs and plugins (cross-platform)
+# Executables and dynamic libraries
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
 
-# Test binary, built with `go test -c`
+# Test binary (built via `go test -c`)
 *.test
 
-# Output of the go coverage tool
+# Coverage and profiling outputs
 *.out
+*.cov
 *.coverage
+
+# Build output / release artifacts
+/releases/
+/dist/
+/build/
+sysinfo
+sysinfo.exe
+*.exe
+
+# Common packaging artifacts
+*.zip
+*.tar.gz
+*.tgz
 
 # Dependency directories
 vendor/
 
-# Go workspace file
+# Go workspace files
 go.work
 go.work.sum
 
-# IDE directories and files
+# IDE and editor files
 .vscode/
 .idea/
 *.swp
@@ -31,19 +46,18 @@ go.work.sum
 Thumbs.db
 desktop.ini
 
-# Build output
-/sysinfo
-/sysinfo.exe
-/build/
-dist/
-
-# Application output files (but allow example configs)
+# Logs and generated outputs
 *.log
-/test-output.json
-/system-info.json
-/disk-report.txt
+coverage.out
+coverage.txt
+test-output.json
+system-info.json
+disk-report.txt
 
-# Allow README and documentation
+# Ignore binaries created by cross-compilation
+*/releases/*
+
+# Keep README, LICENSE, and docs tracked
 !README.md
 !LICENSE
 !*.md
