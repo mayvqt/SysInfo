@@ -58,8 +58,8 @@ type SmartAttribute struct {
 	Value      int    `json:"value"`
 	Worst      int    `json:"worst"`
 	Threshold  int    `json:"thresh"`
-	RawValue   int64  `json:"raw"`
-	RawString  string `json:"raw_str"`
+	RawValue   int64  `json:"raw_value"`
+	RawString  string `json:"raw"`
 	WhenFailed string `json:"when_failed"`
 }
 
