@@ -73,6 +73,65 @@ func FormatText(info *types.SystemInfo) string {
 		sb.WriteString("\n")
 	}
 
+	// SMART disk health information
+	if info.Disk != nil && len(info.Disk.SMARTData) > 0 {
+		sb.WriteString("SMART DISK HEALTH\n")
+		for _, smart := range info.Disk.SMARTData {
+			deviceName := smart.Device
+			if smart.DeviceModel != "" {
+				deviceName = smart.DeviceModel
+			}
+
+			healthStatus := "HEALTHY"
+			if !smart.Healthy {
+				healthStatus = "WARNING"
+			}
+
+			sb.WriteString(fmt.Sprintf("Device: %s [%s]\n", deviceName, healthStatus))
+
+			if smart.Serial != "" {
+				sb.WriteString(fmt.Sprintf("  Serial: %s\n", smart.Serial))
+			}
+			if smart.ModelFamily != "" {
+				sb.WriteString(fmt.Sprintf("  Model Family: %s\n", smart.ModelFamily))
+			}
+			if smart.Capacity > 0 {
+				sb.WriteString(fmt.Sprintf("  Capacity: %s\n", formatBytes(smart.Capacity)))
+			}
+			if smart.Temperature > 0 {
+				sb.WriteString(fmt.Sprintf("  Temperature: %d°C\n", smart.Temperature))
+			}
+			if smart.PowerOnHours > 0 {
+				days := smart.PowerOnHours / 24
+				sb.WriteString(fmt.Sprintf("  Power-On Hours: %d (%d days)\n", smart.PowerOnHours, days))
+			}
+
+			// Display key SMART attributes
+			if len(smart.Attributes) > 0 {
+				criticalAttrs := []string{
+					"Reallocated_Sector_Count",
+					"Current_Pending_Sector",
+					"Offline_Uncorrectable",
+					"UDMA_CRC_Error_Count",
+					"SMART",
+					"Status",
+				}
+
+				hasShownAttrs := false
+				for _, attrName := range criticalAttrs {
+					if val, ok := smart.Attributes[attrName]; ok {
+						if !hasShownAttrs {
+							sb.WriteString("  Attributes:\n")
+							hasShownAttrs = true
+						}
+						sb.WriteString(fmt.Sprintf("    %s: %s\n", attrName, val))
+					}
+				}
+			}
+			sb.WriteString("\n")
+		}
+	}
+
 	// Network information
 	if info.Network != nil && len(info.Network.Interfaces) > 0 {
 		sb.WriteString("NETWORK INTERFACES\n")

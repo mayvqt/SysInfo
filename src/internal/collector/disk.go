@@ -101,19 +101,7 @@ func collectPhysicalDisks() []types.PhysicalDisk {
 }
 
 // CollectSMART gathers SMART data from drives
-// Note: This is a placeholder. Full SMART implementation requires platform-specific code
-// or external libraries like smartmontools
 func CollectSMART() []types.SMARTInfo {
-	// This is a basic implementation
-	// For production use, you would need to:
-	// 1. Call smartctl or similar tools
-	// 2. Parse the output
-	// 3. Handle platform differences
-
-	smartData := make([]types.SMARTInfo, 0)
-
-	// Platform-specific SMART collection would go here
-	// For now, return empty to avoid errors
-
-	return smartData
+	// Call platform-specific implementation
+	return collectSMARTPlatform()
 }

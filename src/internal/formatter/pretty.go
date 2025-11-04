@@ -122,6 +122,76 @@ func FormatPretty(info *types.SystemInfo) string {
 		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n\n"))
 	}
 
+	// SMART disk health information
+	if info.Disk != nil && len(info.Disk.SMARTData) > 0 {
+		sb.WriteString(headerColor.Sprintf("┌─ SMART DISK HEALTH ──────────────────────────────────────────┐\n"))
+		for _, smart := range info.Disk.SMARTData {
+			deviceName := smart.Device
+			if smart.DeviceModel != "" {
+				deviceName = smart.DeviceModel
+			}
+
+			healthStatus := "HEALTHY"
+			healthColor := color.New(color.FgGreen, color.Bold)
+			if !smart.Healthy {
+				healthStatus = "WARNING"
+				healthColor = color.New(color.FgRed, color.Bold)
+			}
+
+			sb.WriteString(fmt.Sprintf("│ %s [%s]\n", valueColor.Sprint(deviceName), healthColor.Sprint(healthStatus)))
+
+			if smart.Serial != "" {
+				sb.WriteString(fmt.Sprintf("│   %-20s %s\n", labelColor.Sprint("Serial:"), valueColor.Sprint(smart.Serial)))
+			}
+			if smart.Capacity > 0 {
+				sb.WriteString(fmt.Sprintf("│   %-20s %s\n", labelColor.Sprint("Capacity:"), valueColor.Sprint(formatBytes(smart.Capacity))))
+			}
+			if smart.Temperature > 0 {
+				tempColor := valueColor
+				if smart.Temperature > 50 {
+					tempColor = color.New(color.FgYellow)
+				}
+				if smart.Temperature > 60 {
+					tempColor = color.New(color.FgRed)
+				}
+				sb.WriteString(fmt.Sprintf("│   %-20s %s\n", labelColor.Sprint("Temperature:"), tempColor.Sprintf("%d°C", smart.Temperature)))
+			}
+			if smart.PowerOnHours > 0 {
+				days := smart.PowerOnHours / 24
+				sb.WriteString(fmt.Sprintf("│   %-20s %s (%s days)\n",
+					labelColor.Sprint("Power-On Hours:"),
+					valueColor.Sprintf("%d", smart.PowerOnHours),
+					valueColor.Sprintf("%d", days)))
+			}
+
+			// Display key SMART attributes
+			if len(smart.Attributes) > 0 {
+				// Show critical attributes
+				criticalAttrs := []string{
+					"Reallocated_Sector_Count",
+					"Current_Pending_Sector",
+					"Offline_Uncorrectable",
+					"UDMA_CRC_Error_Count",
+				}
+
+				hasShownAttrs := false
+				for _, attrName := range criticalAttrs {
+					if val, ok := smart.Attributes[attrName]; ok && val != "0" {
+						if !hasShownAttrs {
+							sb.WriteString(fmt.Sprintf("│   %s\n", labelColor.Sprint("Critical Attributes:")))
+							hasShownAttrs = true
+						}
+						warnColor := color.New(color.FgYellow)
+						sb.WriteString(fmt.Sprintf("│     %s: %s\n", attrName, warnColor.Sprint(val)))
+					}
+				}
+			}
+
+			sb.WriteString("│\n")
+		}
+		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n\n"))
+	}
+
 	// Network information
 	if info.Network != nil && len(info.Network.Interfaces) > 0 {
 		sb.WriteString(headerColor.Sprintf("┌─ NETWORK ────────────────────────────────────────────────────┐\n"))
