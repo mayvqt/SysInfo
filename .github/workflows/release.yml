@@ -1,0 +1,131 @@
+name: Release
+
+on:
+  push:
+    # Only run this workflow for tag pushes (e.g. v1.0.0)
+    tags: [ 'v*' ]
+  # Allow manual runs from the Actions UI and accept an optional tag input
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.2.3). If empty, a patch bump from the latest tag will be created automatically.'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  id-token: write  # Required for artifact attestation
+  attestations: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine or create release tag
+        id: tag
+        run: |
+          set -e
+          # INPUT_TAG comes from workflow_dispatch input when run manually
+          INPUT_TAG="${{ github.event.inputs.tag }}"
+          REF_NAME="${{ github.ref_name }}"
+          if [ -n "${INPUT_TAG}" ]; then
+            TAG="${INPUT_TAG}"
+          else
+            # If triggered by a tag push, use that tag
+            if [ "${{ github.event_name }}" = "push" ] && [[ "${REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              TAG="${REF_NAME}"
+            else
+              # find latest tag, or start at v0.0.0
+              if git describe --tags --abbrev=0 >/dev/null 2>&1; then
+                LATEST=$(git describe --tags --abbrev=0)
+              else
+                LATEST="v0.0.0"
+              fi
+              # parse semver (expects vMAJ.MIN.PATCH)
+              MAJ=$(echo "${LATEST}" | sed -E 's/^v([0-9]+)\..*/\1/')
+              MIN=$(echo "${LATEST}" | sed -E 's/^v[0-9]+\.([0-9]+)\..*/\1/')
+              PATCH=$(echo "${LATEST}" | sed -E 's/^v[0-9]+\.[0-9]+\.([0-9]+).*/\1/')
+              MAJ=${MAJ:-0}; MIN=${MIN:-0}; PATCH=${PATCH:-0}
+              NEXT=$((PATCH + 1))
+              TAG="v${MAJ}.${MIN}.${NEXT}"
+            fi
+          fi
+
+          # validate tag format
+          if [[ ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid tag format: ${TAG}. Must be vMAJ.MIN.PATCH"
+            exit 1
+          fi
+
+          echo "Using release tag: ${TAG}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "version=${TAG#v}" >> $GITHUB_OUTPUT  # version without 'v' prefix
+
+          # If this run was not triggered by a tag push matching TAG, create & push the tag so it exists in the repo
+          if [ "${{ github.event_name }}" != "push" ] || [[ "${REF_NAME}" != "${TAG}" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "${TAG}" -m "Release ${TAG}"
+            git push origin "${TAG}"
+          fi
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: src/go.sum
+
+      - name: Install dependencies
+        working-directory: src
+        run: go mod download
+
+      - name: Run vet & tests
+        working-directory: src
+        run: |
+          go vet ./...
+          go test ./... -v
+
+      - name: Build cross-platform binaries
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          set -e
+          mkdir -p releases
+          cd src
+          
+          # Build info to embed in binaries
+          BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          LDFLAGS="-s -w -X main.Version=${VERSION} -X main.Commit=${COMMIT} -X main.BuildTime=${BUILD_TIME}"
+          
+          GOOS=windows GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-windows-amd64.exe .
+          GOOS=windows GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-windows-arm64.exe .
+          GOOS=linux GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-linux-amd64 .
+          GOOS=linux GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-linux-arm64 .
+          GOOS=darwin GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-darwin-amd64 .
+          GOOS=darwin GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o ../releases/sysinfo-darwin-arm64 .
+          cd ..
+          sha256sum releases/* > releases/checksums.txt
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: 'releases/*'
+
+      - name: Create GitHub Release (with assets)
+        id: gh_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          files: releases/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

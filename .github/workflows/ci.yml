@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']        # run quick checks for any branch push
+  pull_request:
+    branches: ['**']       # run quick checks for any PR
+  workflow_dispatch: {}    # manual trigger for full runs
+
+permissions:
+  contents: read
+
+jobs:
+  quick-checks:
+    name: Quick checks (lint & unit tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: src/go.sum
+
+      - name: Install dependencies
+        working-directory: src
+        run: go mod download
+
+      - name: Run go vet
+        working-directory: src
+        run: go vet ./...
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          working-directory: src
+          args: --timeout=5m
+
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@v1
+        with:
+          go-version-input: '1.21'
+          work-dir: src
+
+      - name: Run unit tests
+        working-directory: src
+        run: go test ./... -v -race -coverprofile=coverage.out -covermode=atomic
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: src/coverage.out
+
+  full-build:
+    name: Full build / release (conditional)
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/dev' ||
+      startsWith(github.ref, 'refs/heads/release/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: src/go.sum
+
+      - name: Install dependencies
+        working-directory: src
+        run: go mod download
+
+      - name: Build (sanity)
+        working-directory: src
+        run: go build -v -o ../sysinfo
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sysinfo-sanity
+          path: sysinfo

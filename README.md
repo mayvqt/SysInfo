@@ -1,802 +1,1137 @@
-# SysInfo
+# SysInfo# SysInfo# SysInfo# SysInfogit clone https://github.com/mayvqt/sysinfo.git
 
-A comprehensive cross-platform system information tool written in Go. SysInfo collects and displays detailed information about your computer including CPU, memory, disks, network interfaces, processes, and more.
+
+
+[![CI](https://github.com/mayvqt/sysinfo/actions/workflows/ci.yml/badge.svg)](https://github.com/mayvqt/sysinfo/actions/workflows/ci.yml)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+[![Release](https://img.shields.io/github/v/release/mayvqt/sysinfo)](https://github.com/mayvqt/sysinfo/releases)[![Go Report Card](https://goreportcard.com/badge/github.com/mayvqt/sysinfo)](https://goreportcard.com/report/github.com/mayvqt/sysinfo)
+
+[![Go Version](https://img.shields.io/github/go-mod/go-version/mayvqt/sysinfo)](https://github.com/mayvqt/sysinfo/blob/main/src/go.mod)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+SysInfo is a lightweight, cross-platform system information tool written in Go. It collects and displays detailed hardware and software information with support for JSON, text, and color-formatted output.
+
+[![Release](https://img.shields.io/github/v/release/mayvqt/sysinfo)](https://github.com/mayvqt/sysinfo/releases)SysInfo is a lightweight, cross-platform system information tool written in Go. It collects and displays detailed hardware and software information with support for JSON, text, and color-formatted output.go mod download
 
 ## Features
 
-- 🖥️ **System Information**: Hostname, OS, platform, kernel version, uptime
-- ⚡ **CPU Details**: Model, cores, frequency, per-core usage, load averages
-- 💾 **Memory Stats**: RAM and swap usage with detailed metrics
-- 💿 **Disk Information**: Partitions, usage, I/O statistics, SMART data support
-- 🌐 **Network Interfaces**: IP addresses, MAC addresses, traffic statistics
-- 📊 **Process Information**: Running processes, top consumers by CPU and memory
-- 🎨 **Multiple Output Formats**: Pretty-printed (colored), plain text, JSON
-- 📝 **File Output**: Save reports to files
-- 🎯 **Modular Design**: Select specific information modules to display
-- 🔧 **Highly Customizable**: Extensive CLI flags for fine-grained control
+[![Go Version](https://img.shields.io/github/go-mod/go-version/mayvqt/sysinfo)](https://github.com/mayvqt/sysinfo/blob/main/src/go.mod)
 
-## Installation
+- **Cross-platform** — Windows, Linux, and macOS support via gopsutil
 
-### Prerequisites
+- **Modular collection** — Choose specific modules or collect everything
 
-- Go 1.21 or higher
+- **Multiple formats** — JSON for automation, plain text for scripting, pretty-printed for readability
 
-### Build from Source
+- **SMART disk monitoring** — Read disk health metrics (platform-specific, requires elevation)SysInfo is a lightweight, cross-platform system information tool written in Go. It collects and displays detailed hardware and software information with support for JSON, text, and color-formatted output.
 
-```bash
-# Clone the repository
-git clone https://github.com/mayvqt/sysinfo.git
-cd sysinfo
+- **Process insights** — Top CPU and memory consumers
 
-# Download dependencies
-go mod download
+- **Network stats** — Interface details with I/O counters## FeaturesSysInfo is a cross-platform system information tool written in Go. It collects and displays comprehensive hardware and software information including CPU, memory, disk, network, processes, and SMART data.go build -o sysinfo
 
-# Build the application
-go build -o sysinfo
+- **Lightweight** — Single binary, minimal dependencies
 
-# (Optional) Install to your PATH
-go install
+## Features
+
+## Quickstart
+
+
+
+```powershell
+
+cd src- **Cross-platform** — Windows, Linux, and macOS support via gopsutil
+
+go build -o sysinfo.exe .
+
+.\sysinfo.exe- **Modular collection** — Choose specific modules or collect everything- **Cross-platform** — Windows, Linux, and macOS support via gopsutilgo install
+
 ```
+
+- **Multiple formats** — JSON for automation, plain text for scripting, pretty-printed for readability
+
+The tool runs with `--all` by default, displaying a color-formatted report of all system metrics.
+
+- **SMART disk monitoring** — Read disk health metrics (platform-specific, requires elevation)- **Modular collection** — Choose specific modules or collect everything
 
 ## Usage
 
-### Basic Usage
+- **Process insights** — Top CPU and memory consumers
 
-Display all system information with pretty formatting:
-
-```bash
-sysinfo
 ```
 
-### Output Formats
+sysinfo [flags]- **Network stats** — Interface details with I/O counters- **Multiple formats** — JSON for automation, plain text for scripting, pretty-printed for readability## Featuressysinfo --format pretty
 
-```bash
-# Pretty formatted output (default, with colors)
-sysinfo --format pretty
-
-# Plain text output
-sysinfo --format text
-
-# JSON output
-sysinfo --format json
 ```
 
-### Save to File
+- **Lightweight** — Single binary, minimal dependencies
 
-```bash
-# Save output to a file
-sysinfo --output report.txt
+### Output Options
 
-# Save JSON report
-sysinfo --format json --output system-info.json
+- **SMART disk monitoring** — Read disk health metrics (platform-specific, requires elevation)
+
+| Flag | Values | Default | Description |
+
+|------|--------|---------|-------------|## Quickstart
+
+| `-f, --format` | `json`, `text`, `pretty` | `pretty` | Output format |
+
+| `-o, --output` | path | - | Write to file instead of stdout |- **Process insights** — Top CPU and memory consumerssysinfo --disk --smart
+
+| `-v, --verbose` | - | - | Show collection progress |
+
+```powershell
+
+### Module Selection
+
+cd src- **Network stats** — Interface details with I/O counters
+
+| Flag | Description |
+
+|------|-------------|go build -o sysinfo.exe .
+
+| `--all` | All modules (default unless specific flags used) |
+
+| `--system` | Hostname, OS, platform, kernel, uptime |.\sysinfo.exe- **Lightweight** — Single binary, minimal dependencies- **Cross-platform support** — Windows, Linux, and macOSsysinfo --verbose
+
+| `--cpu` | Model, cores, frequency, per-core usage, load average |
+
+| `--memory` | Total, used, free, cached, swap |```
+
+| `--disk` | Partitions, usage, I/O stats |
+
+| `--network` | Interfaces, addresses, flags, I/O counters |
+
+| `--process` | Total count, top 10 by CPU and memory |
+
+| `--smart` | Disk health data (requires admin/root) |The tool runs with `--all` by default, displaying a color-formatted report of all system metrics.
+
+
+
+**Note:** Specifying any module flag (e.g., `--cpu`) disables `--all`. Combine multiple flags to collect specific modules.## Quickstart- **Comprehensive data collection** — CPU, memory, disk, network, processes, and SMART disk health
+
+
+
+## Examples## Usage
+
+
+
+**Default output (all modules, pretty format):**
+
+```powershell
+
+.\sysinfo.exe```
+
 ```
 
-### Select Specific Modules
+sysinfo [flags]```powershell- **Multiple output formats** — JSON, text, and pretty-printed tables# SysInfo
 
-By default, all information is collected. You can select specific modules:
+**CPU and memory only, JSON format:**
 
-```bash
-# Only CPU and memory information
-sysinfo --cpu --memory
+```powershell```
 
-# Only disk information
-sysinfo --disk
+.\sysinfo.exe --cpu --memory --format json
 
-# System and network information
-sysinfo --system --network
+```cd src
 
-# Include SMART disk data (may require elevated privileges)
-sysinfo --disk --smart
+
+
+**Save full report to file:**### Output Options
+
+```powershell
+
+.\sysinfo.exe --output report.json --format jsongo build -o sysinfo.exe .- **Modular design** — Collect only the information you need
+
 ```
 
-### Available Modules
+| Flag | Values | Default | Description |
 
-- `--all` - Collect all information (default)
-- `--system` - System information (hostname, OS, uptime, etc.)
-- `--cpu` - CPU information and usage
-- `--memory` - Memory and swap information
-- `--disk` - Disk partitions and usage
-- `--network` - Network interfaces and statistics
-- `--process` - Process information and top consumers
-- `--smart` - SMART disk health data (requires elevated privileges on some systems)
+**SMART disk health (requires elevation):**
 
-### Additional Options
+```powershell|------|--------|---------|-------------|.\sysinfo.exe
 
-```bash
-# Verbose output (shows collection progress)
-sysinfo --verbose
+# Windows (run as Administrator)
 
-# Short flags
-sysinfo -f json -o output.json -v
+.\sysinfo.exe --smart --disk| `-f, --format` | `json`, `text`, `pretty` | `pretty` | Output format |
+
+
+
+# Linux/macOS| `-o, --output` | path | - | Write to file instead of stdout |```- **File output support** — Save reports to diskSysInfo is a small, cross-platform Go utility and library for collecting basic system information and metrics. It provides lightweight collectors for CPU, memory, disk, network, and processes and can be used as a CLI tool or embedded in other Go programs.
+
+sudo ./sysinfo --smart --disk
+
+```| `-v, --verbose` | - | - | Show collection progress |
+
+
+
+**Network interfaces with verbose output:**
+
+```powershell
+
+.\sysinfo.exe --network --verbose### Module Selection
+
 ```
+
+The tool runs with `--all` by default, displaying a color-formatted report of all system metrics.- **Lightweight** — Single binary with no dependencies
+
+**Top processes only:**
+
+```powershell| Flag | Description |
+
+.\sysinfo.exe --process --format text
+
+```|------|-------------|
+
+
+
+## Output Format Details| `--all` | All modules (default unless specific flags used) |
+
+
+
+### Pretty Format| `--system` | Hostname, OS, platform, kernel, uptime |## Usage- **SMART monitoring** — Disk health metrics (requires elevated privileges)## Features
+
+
+
+- Color-coded sections with Unicode box-drawing characters| `--cpu` | Model, cores, frequency, per-core usage, load average |
+
+- Progress bars for CPU, memory, disk usage
+
+- Organized by module with clear headers| `--memory` | Total, used, free, cached, swap |
+
+- Temperature warnings in SMART data (yellow >50°C, red >60°C)
+
+- Top 5 processes by memory/CPU displayed| `--disk` | Partitions, usage, I/O stats |
+
+
+
+### Text Format| `--network` | Interfaces, addresses, flags, I/O counters |```
+
+
+
+- Plain text, no colors or special characters| `--process` | Total count, top 10 by CPU and memory |
+
+- Suitable for logging or scripting
+
+- Same structure as pretty format but simplified| `--smart` | Disk health data (requires admin/root) |sysinfo [flags]
+
+
+
+### JSON Format
+
+
+
+- Complete structured data**Note:** Specifying any module flag (e.g., `--cpu`) disables `--all`. Combine multiple flags to collect specific modules.```## Quickstart (works out of the box)}
+
+- Omits null/empty fields (`omitempty`)
+
+- Includes timestamp in ISO 8601 format
+
+- All byte values include human-readable formatted versions
 
 ## Examples
 
-### Example 1: Quick System Overview
+## Platform-Specific Notes
 
-```bash
-sysinfo --system --cpu --memory
+
+
+### Windows
+
+- SMART collection uses WMI (`Win32_DiskDrive`, `MSStorageDriver_*` classes)**Default output (all modules, pretty format):**### Output Optionsif cfg.ShouldCollect("battery") {
+
+- Requires Administrator privileges for SMART data
+
+- Executable pauses on exit when double-clicked (not from terminal)```powershell
+
+
+
+### Linux.\sysinfo.exe
+
+- SMART collection uses `smartctl` (requires `smartmontools` package)
+
+- Supports both ATA and NVMe drives via `smartctl --json````
+
+- Requires root for SMART data
+
+- Load average always available (1, 5, 15 minute intervals)| Flag | Values | Default | Description |Build and run locally:
+
+
+
+### macOS**CPU and memory only, JSON format:**
+
+- SMART collection uses `smartctl` (install via `brew install smartmontools`)
+
+- Requires root for SMART data```powershell|------|--------|---------|-------------|
+
+- Some disk I/O counters may be limited compared to Linux
+
+.\sysinfo.exe --cpu --memory --format json
+
+## Data Collected
+
+```| `-f, --format` | `json`, `text`, `pretty` | `pretty` | Output format |# SysInfo
+
+### System Module
+
+- Hostname, OS, platform family/version
+
+- Kernel version and architecture
+
+- Uptime (formatted and in seconds)**Save full report to file:**| `-o, --output` | path | - | Write to file instead of stdout |
+
+- Boot time, process count
+
+```powershell
+
+### CPU Module
+
+- Model name, vendor, family, model, stepping.\sysinfo.exe --output report.json --format json| `-v, --verbose` | - | - | Show collection progress |```powershell
+
+- Physical cores and logical CPUs
+
+- Current, min, max frequency```
+
+- Cache size, microcode version
+
+- Per-core usage percentages (sampled over 1 second)
+
+- Load average (Linux/macOS)
+
+- CPU flags**SMART disk health (requires elevation):**
+
+
+
+### Memory Module```powershell### Module Selection# Navigate to src directorySysInfo is a small, cross-platform Go utility and library for collecting basic system information and metrics. It provides lightweight collectors for CPU, memory, disk, network, and processes and can be used as a CLI tool or embedded in other Go programs.
+
+- Total, used, free, available (bytes and formatted)
+
+- Usage percentage# Windows (run as Administrator)
+
+- Cached, buffers, shared memory
+
+- Swap total, used, free, percentage.\sysinfo.exe --smart --disk
+
+- Physical RAM modules (placeholder for future WMI/dmidecode integration)
+
+
+
+### Disk Module
+
+- Partitions: device, mount point, filesystem type# Linux/macOS| Flag | Description |cd src
+
+- Total, used, free space (bytes, formatted, percentage)
+
+- Inode counts (Linux)sudo ./sysinfo --smart --disk
+
+- I/O statistics per disk: read/write counts, bytes, time
+
+- Physical disk information (placeholder)```|------|-------------|
+
+- SMART data: device, model, serial, capacity, health status, temperature, power-on hours, critical attributes
+
+
+
+### Network Module
+
+- Interface name, MAC address, MTU**Network interfaces with verbose output:**| `--all` | All modules (default unless specific flags used) |## Features
+
+- IP addresses (all assigned)
+
+- Flags (UP, BROADCAST, LOOPBACK, MULTICAST)```powershell
+
+- Bytes/packets sent and received
+
+- Error and drop counts.\sysinfo.exe --network --verbose| `--system` | Hostname, OS, platform, kernel, uptime |
+
+- Total connection count
+
 ```
 
-### Example 2: Detailed Disk Report
+### Process Module
 
-```bash
-sysinfo --disk --smart --format pretty --output disk-report.txt
+- Total count, running, sleeping| `--cpu` | Model, cores, frequency, per-core usage, load average |# Build the binary
+
+- Top 10 by memory: PID, name, username, memory MB, percentage
+
+- Top 10 by CPU: PID, name, CPU percentage**Top processes only:**
+
+- Process status, create time
+
+```powershell| `--memory` | Total, used, free, cached, swap |
+
+## Building
+
+.\sysinfo.exe --process --format text
+
+**Prerequisites:**
+
+- Go 1.21 or later```| `--disk` | Partitions, usage, I/O stats |go build -o sysinfo.exe .- Lightweight and minimal dependencies
+
+
+
+**Build:**
+
+```powershell
+
+cd src## Output Format Details| `--network` | Interfaces, addresses, flags, I/O counters |
+
+go build -o sysinfo.exe .
+
 ```
 
-### Example 3: JSON Export for Monitoring
 
-```bash
-sysinfo --format json --output /var/log/sysinfo-$(date +%Y%m%d).json
+
+**Cross-compile:**### Pretty Format| `--process` | Total count, top 10 by CPU and memory |- Cross-platform collectors (Windows, Linux, macOS)
+
+```powershell
+
+# Linux
+
+$env:GOOS="linux"; $env:GOARCH="amd64"; go build -o sysinfo .
+
+- Color-coded sections with Unicode box-drawing characters| `--smart` | Disk health data (requires admin/root) |
+
+# macOS (Intel)
+
+$env:GOOS="darwin"; $env:GOARCH="amd64"; go build -o sysinfo .- Progress bars for CPU, memory, disk usage
+
+
+
+# macOS (Apple Silicon)- Organized by module with clear headers# Run with default settings (all modules, pretty output)- Human-friendly and machine-readable output
+
+$env:GOOS="darwin"; $env:GOARCH="arm64"; go build -o sysinfo .
+
+```- Temperature warnings in SMART data (yellow >50°C, red >60°C)
+
+
+
+## Dependencies- Top 5 processes by memory/CPU displayed**Note:** Specifying any module flag (e.g., `--cpu`) disables `--all`. Combine multiple flags to collect specific modules.
+
+
+
+Dependencies are managed via `go.mod`:
+
+
+
+- `github.com/shirou/gopsutil/v3` — System metrics collection### Text Format.\sysinfo.exe- Easy to build and run with Go tooling
+
+- `github.com/spf13/cobra` — Command-line interface
+
+- `github.com/fatih/color` — Terminal colors
+
+- `github.com/olekukonko/tablewriter` — Table rendering (used in code, minimal in current output)
+
+- `github.com/yusufpapurcu/wmi` — Windows WMI queries (Windows only)- Plain text, no colors or special characters## Examples
+
+
+
+Install:- Suitable for logging or scripting
+
+```powershell
+
+cd src- Same structure as pretty format but simplified```
+
+go mod download
+
 ```
 
-### Example 4: Network Diagnostics
 
-```bash
-sysinfo --network --verbose
+
+## Troubleshooting### JSON Format**Default output (all modules, pretty format):**
+
+
+
+**SMART data returns empty:**
+
+- Windows: Run as Administrator
+
+- Linux/macOS: Run with `sudo` and ensure `smartmontools` is installed- Complete structured data```powershell## Quick start
+
+- Not all drives/controllers support SMART
+
+- Omits null/empty fields (`omitempty`)
+
+**Build fails with missing dependencies:**
+
+```powershell- Includes timestamp in ISO 8601 format.\sysinfo.exe
+
+go mod tidy
+
+go mod download- All byte values include human-readable formatted versions
+
+```
+
+```Or run directly with Go:
+
+**Colored output not working:**
+
+- Some terminals don't support ANSI colors## Platform-Specific Notes
+
+- Use `--format text` or `--format json` instead
+
+
+
+**"Press Enter to exit" appears when running from terminal:**
+
+- This is intentional when the binary is double-clicked (no terminal attached)### Windows
+
+- Does not occur when run from PowerShell/CMD/bash
+
+- SMART collection uses WMI (`Win32_DiskDrive`, `MSStorageDriver_*` classes)**CPU and memory only, JSON format:**Prerequisites: Go 1.20+ installed.
+
+**No load average on Windows:**
+
+- Load average is a Unix/Linux concept, not available on Windows- Requires Administrator privileges for SMART data
+
+
+
+## License- Executable pauses on exit when double-clicked (not from terminal)```powershell
+
+
+
+MIT
+
+
+### Linux.\sysinfo.exe --cpu --memory --format json```powershell
+
+- SMART collection uses `smartctl` (requires `smartmontools` package)
+
+- Supports both ATA and NVMe drives via `smartctl --json````
+
+- Requires root for SMART data
+
+- Load average always available (1, 5, 15 minute intervals)cd srcBuild and run from the repository root:
+
+
+
+### macOS**Save full report to file:**
+
+- SMART collection uses `smartctl` (install via `brew install smartmontools`)
+
+- Requires root for SMART data```powershellgo run . --all
+
+- Some disk I/O counters may be limited compared to Linux
+
+.\sysinfo.exe --output report.json --format json
+
+## Data Collected
+
+`````````powershell
+
+### System Module
+
+- Hostname, OS, platform family/version
+
+- Kernel version and architecture
+
+- Uptime (formatted and in seconds)**SMART disk health (requires elevation):**cd src
+
+- Boot time, process count
+
+```powershell
+
+### CPU Module
+
+- Model name, vendor, family, model, stepping# Windows (run as Administrator)## Installationgo build -o sysinfo .
+
+- Physical cores and logical CPUs
+
+- Current, min, max frequency.\sysinfo.exe --smart --disk
+
+- Cache size, microcode version
+
+- Per-core usage percentages (sampled over 1 second)./sysinfo --help
+
+- Load average (Linux/macOS)
+
+- CPU flags# Linux/macOS
+
+
+
+### Memory Modulesudo ./sysinfo --smart --disk**From source:**```
+
+- Total, used, free, available (bytes and formatted)
+
+- Usage percentage```
+
+- Cached, buffers, shared memory
+
+- Swap total, used, free, percentage
+
+- Physical RAM modules (placeholder for future WMI/dmidecode integration)
+
+**Network interfaces with verbose output:**
+
+### Disk Module
+
+- Partitions: device, mount point, filesystem type```powershell```powershellOr run directly with the Go tool for development:
+
+- Total, used, free space (bytes, formatted, percentage)
+
+- Inode counts (Linux).\sysinfo.exe --network --verbose
+
+- I/O statistics per disk: read/write counts, bytes, time
+
+- Physical disk information (placeholder)```# Clone the repository
+
+- SMART data: device, model, serial, capacity, health status, temperature, power-on hours, critical attributes
+
+
+
+### Network Module
+
+- Interface name, MAC address, MTU**Top processes only:**git clone https://github.com/mayvqt/SysInfo.git```powershell
+
+- IP addresses (all assigned)
+
+- Flags (UP, BROADCAST, LOOPBACK, MULTICAST)```powershell
+
+- Bytes/packets sent and received
+
+- Error and drop counts.\sysinfo.exe --process --format textcd SysInfo\srccd src
+
+- Total connection count
+
+```
+
+### Process Module
+
+- Total count, running, sleepinggo run .
+
+- Top 10 by memory: PID, name, username, memory MB, percentage
+
+- Top 10 by CPU: PID, name, CPU percentage## Output Format Details
+
+- Process status, create time
+
+# Build```
+
+## Building
+
+### Pretty Format
+
+**Prerequisites:**
+
+- Go 1.21 or latergo build -o sysinfo.exe .
+
+
+
+**Build:**- Color-coded sections with Unicode box-drawing characters
+
+```powershell
+
+cd src- Progress bars for CPU, memory, disk usage## Usage
+
+go build -o sysinfo.exe .
+
+```- Organized by module with clear headers
+
+
+
+**Cross-compile:**- Temperature warnings in SMART data (yellow >50°C, red >60°C)# Install (optional - places binary in GOPATH/bin)
+
+```powershell
+
+# Linux- Top 5 processes by memory/CPU displayed
+
+$env:GOOS="linux"; $env:GOARCH="amd64"; go build -o sysinfo .
+
+go install .The binary includes command-line flags and subcommands (see `--help`). Typical usage is to run the collector and print results to stdout. The project is intentionally small so it can be integrated into other tools or pipelines.
+
+# macOS (Intel)
+
+$env:GOOS="darwin"; $env:GOARCH="amd64"; go build -o sysinfo .### Text Format
+
+
+
+# macOS (Apple Silicon)```
+
+$env:GOOS="darwin"; $env:GOARCH="arm64"; go build -o sysinfo .
+
+```- Plain text, no colors or special characters
+
+
+
+## Dependencies- Suitable for logging or scripting## Project layout (high level)
+
+
+
+Dependencies are managed via `go.mod`:- Same structure as pretty format but simplified
+
+
+
+- `github.com/shirou/gopsutil/v3` — System metrics collection**Build for different platforms:**
+
+- `github.com/spf13/cobra` — Command-line interface
+
+- `github.com/fatih/color` — Terminal colors### JSON Format
+
+- `github.com/olekukonko/tablewriter` — Table rendering (used in code, minimal in current output)
+
+- `github.com/yusufpapurcu/wmi` — Windows WMI queries (Windows only)- `src/` — Go module and application source
+
+
+
+Install:- Complete structured data
+
+```powershell
+
+cd src- Omits null/empty fields (`omitempty`)```powershell- `internal/collector/` — platform-specific collectors and system probes
+
+go mod download
+
+```- Includes timestamp in ISO 8601 format
+
+
+
+## Troubleshooting- All byte values include human-readable formatted versions# Windows- `cmd/` — CLI entrypoint and command wiring
+
+
+
+**SMART data returns empty:**
+
+- Windows: Run as Administrator
+
+- Linux/macOS: Run with `sudo` and ensure `smartmontools` is installed## Platform-Specific Notesgo build -o sysinfo.exe .
+
+- Not all drives/controllers support SMART
+
+
+
+**Build fails with missing dependencies:**
+
+```powershell### Windows## Contributing
+
+go mod tidy
+
+go mod download- SMART collection uses WMI (`Win32_DiskDrive`, `MSStorageDriver_*` classes)
+
+```
+
+- Requires Administrator privileges for SMART data# Linux
+
+**Colored output not working:**
+
+- Some terminals don't support ANSI colors- Executable pauses on exit when double-clicked (not from terminal)
+
+- Use `--format text` or `--format json` instead
+
+$env:GOOS="linux"; $env:GOARCH="amd64"; go build -o sysinfo .Contributions are welcome. Keep changes focused and include tests where appropriate. Follow existing code style and run `go vet`/`go test` before submitting PRs.
+
+**"Press Enter to exit" appears when running from terminal:**
+
+- This is intentional when the binary is double-clicked (no terminal attached)### Linux
+
+- Does not occur when run from PowerShell/CMD/bash
+
+- SMART collection uses `smartctl` (requires `smartmontools` package)
+
+**No load average on Windows:**
+
+- Load average is a Unix/Linux concept, not available on Windows- Supports both ATA and NVMe drives via `smartctl --json`
+
+
+
+## License- Requires root for SMART data# macOS## License
+
+
+
+MIT- Load average always available (1, 5, 15 minute intervals)
+
+
+$env:GOOS="darwin"; $env:GOARCH="amd64"; go build -o sysinfo .
+
+### macOS
+
+- SMART collection uses `smartctl` (install via `brew install smartmontools`)```This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+- Requires root for SMART data
+
+- Some disk I/O counters may be limited compared to Linux
+
+## Command-Line Options
+
+## Data Collected
+
+### Output Formats
+
+### System Module
+
+- Hostname, OS, platform family/version| Flag | Options | Default | Description |
+
+- Kernel version and architecture|------|---------|---------|-------------|
+
+- Uptime (formatted and in seconds)| `-f, --format` | `json`, `text`, `pretty` | `pretty` | Output format |
+
+- Boot time, process count| `-o, --output` | file path | stdout | Write output to file |
+
+| `-v, --verbose` | - | false | Enable verbose logging |
+
+### CPU Module
+
+- Model name, vendor, family, model, stepping### Module Selection
+
+- Physical cores and logical CPUs
+
+- Current, min, max frequencyBy default, `--all` collects everything. Use specific flags to collect only what you need:
+
+- Cache size, microcode version
+
+- Per-core usage percentages (sampled over 1 second)| Flag | Description |
+
+- Load average (Linux/macOS)|------|-------------|
+
+- CPU flags| `--all` | Collect all information (default) |
+
+| `--system` | System information (OS, hostname, uptime) |
+
+### Memory Module| `--cpu` | CPU model, cores, usage, load average |
+
+- Total, used, free, available (bytes and formatted)| `--memory` | RAM usage, swap, available memory |
+
+- Usage percentage| `--disk` | Disk partitions, usage, I/O stats |
+
+- Cached, buffers, shared memory| `--network` | Network interfaces, IP addresses, stats |
+
+- Swap total, used, free, percentage| `--process` | Running processes and resource usage |
+
+- Physical RAM modules (placeholder for future WMI/dmidecode integration)| `--smart` | SMART disk health data (requires admin/root) |
+
+
+
+### Disk Module**Note:** Specifying any individual module flag disables `--all`. Combine flags to select multiple modules.
+
+- Partitions: device, mount point, filesystem type
+
+- Total, used, free space (bytes, formatted, percentage)## Usage Examples
+
+- Inode counts (Linux)
+
+- I/O statistics per disk: read/write counts, bytes, time### 1. Display All Information (Default)
+
+- Physical disk information (placeholder)
+
+- SMART data: device, model, serial, capacity, health status, temperature, power-on hours, critical attributes```powershell
+
+.\sysinfo.exe
+
+### Network Module```
+
+- Interface name, MAC address, MTU
+
+- IP addresses (all assigned)Pretty-printed output to console with all available system data.
+
+- Flags (UP, BROADCAST, LOOPBACK, MULTICAST)
+
+- Bytes/packets sent and received---
+
+- Error and drop counts
+
+- Total connection count### 2. JSON Output
+
+
+
+### Process Module```powershell
+
+- Total count, running, sleeping.\sysinfo.exe --format json
+
+- Top 10 by memory: PID, name, username, memory MB, percentage```
+
+- Top 10 by CPU: PID, name, CPU percentage
+
+- Process status, create timeOutputs structured JSON suitable for parsing or integration with monitoring tools.
+
+
+
+## Building---
+
+
+
+**Prerequisites:**### 3. Save Report to File
+
+- Go 1.21 or later
+
+```powershell
+
+**Build:**.\sysinfo.exe --output system-report.txt
+
+```powershell```
+
+cd src
+
+go build -o sysinfo.exe .Writes pretty-printed report to `system-report.txt`.
+
+```
+
+---
+
+**Cross-compile:**
+
+```powershell### 4. Collect Specific Modules
+
+# Linux
+
+$env:GOOS="linux"; $env:GOARCH="amd64"; go build -o sysinfo .```powershell
+
+# CPU and Memory only
+
+# macOS (Intel).\sysinfo.exe --cpu --memory
+
+$env:GOOS="darwin"; $env:GOARCH="amd64"; go build -o sysinfo .
+
+# System info and disk with JSON output
+
+# macOS (Apple Silicon).\sysinfo.exe --system --disk --format json
+
+$env:GOOS="darwin"; $env:GOARCH="arm64"; go build -o sysinfo .
+
+```# Network information saved to file
+
+.\sysinfo.exe --network --output network-info.json --format json
+
+## Dependencies```
+
+
+
+Dependencies are managed via `go.mod`:---
+
+
+
+- `github.com/shirou/gopsutil/v3` — System metrics collection### 5. SMART Disk Health (Requires Elevation)
+
+- `github.com/spf13/cobra` — Command-line interface
+
+- `github.com/fatih/color` — Terminal colors**Windows (Run as Administrator):**
+
+- `github.com/olekukonko/tablewriter` — Table rendering (used in code, minimal in current output)
+
+- `github.com/yusufpapurcu/wmi` — Windows WMI queries (Windows only)```powershell
+
+.\sysinfo.exe --smart
+
+Install:```
+
+```powershell
+
+cd src**Linux/macOS (Run with sudo):**
+
+go mod download
+
+``````bash
+
+sudo ./sysinfo --smart
+
+## Troubleshooting```
+
+
+
+**SMART data returns empty:**Returns detailed SMART attributes including temperature, reallocated sectors, power-on hours, and health status.
+
+- Windows: Run as Administrator
+
+- Linux/macOS: Run with `sudo` and ensure `smartmontools` is installed---
+
+- Not all drives/controllers support SMART
+
+### 6. Verbose Mode
+
+**Build fails with missing dependencies:**
+
+```powershell```powershell
+
+go mod tidy.\sysinfo.exe --verbose --all
+
+go mod download```
+
+```
+
+Shows progress messages during collection and formatting.
+
+**Colored output not working:**
+
+- Some terminals don't support ANSI colors---
+
+- Use `--format text` or `--format json` instead
+
+### 7. Text Format for Scripting
+
+**"Press Enter to exit" appears when running from terminal:**
+
+- This is intentional when the binary is double-clicked (no terminal attached)```powershell
+
+- Does not occur when run from PowerShell/CMD/bash.\sysinfo.exe --format text --cpu --memory | Select-String "Usage"
+
+```
+
+**No load average on Windows:**
+
+- Load average is a Unix/Linux concept, not available on WindowsPlain text output is easily parseable with grep, findstr, or PowerShell pipelines.
+
+
+
+## License---
+
+
+
+MIT## Complete Example Workflow
+
+
+```powershell
+# Build the tool
+cd src
+go build -o sysinfo.exe .
+
+# Quick system overview
+.\sysinfo.exe
+
+# Generate JSON report with all data
+.\sysinfo.exe --format json --output full-report.json
+
+# Check CPU and memory usage
+.\sysinfo.exe --cpu --memory --format pretty
+
+# Monitor disk health (as Administrator)
+.\sysinfo.exe --smart --disk --output disk-health.txt
+
+# Network diagnostics
+.\sysinfo.exe --network --format json | ConvertFrom-Json | Select -ExpandProperty network
+```
+
+## Output Examples
+
+**Pretty Format (default):**
+```
+╔══════════════════════════════════════════════════════════╗
+║                    SYSTEM INFORMATION                    ║
+╚══════════════════════════════════════════════════════════╝
+
+Hostname:         DESKTOP-ABC123
+OS:               windows
+Platform:         Microsoft Windows 11 Pro
+Uptime:           2 days, 5 hours, 32 minutes
+Processes:        287
+
+╔══════════════════════════════════════════════════════════╗
+║                         CPU INFO                         ║
+╚══════════════════════════════════════════════════════════╝
+
+Model:            Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz
+Cores:            8
+Logical CPUs:     8
+Current Speed:    3600 MHz
+Usage:            [12.5% 8.3% 15.2% 9.1% ...]
+```
+
+**JSON Format:**
+```json
+{
+  "timestamp": "2025-11-04T10:30:00Z",
+  "system": {
+    "hostname": "DESKTOP-ABC123",
+    "os": "windows",
+    "platform": "Microsoft Windows 11 Pro",
+    "uptime_seconds": 187920,
+    "processes": 287
+  },
+  "cpu": {
+    "model_name": "Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz",
+    "physical_cores": 8,
+    "logical_cpus": 8,
+    "mhz": 3600,
+    "usage_percent": [12.5, 8.3, 15.2, 9.1, ...]
+  }
+}
 ```
 
 ## Project Structure
 
 ```
 SysInfo/
-├── main.go                     # Application entry point
-├── go.mod                      # Go module definition
-├── cmd/
-│   └── root.go                 # CLI command and flag definitions
-├── internal/
-│   ├── config/
-│   │   └── config.go           # Configuration structures
-│   ├── types/
-│   │   └── types.go            # Data type definitions
-│   ├── collector/
-│   │   ├── collector.go        # Main collection orchestrator
-│   │   ├── system.go           # System information collector
-│   │   ├── cpu.go              # CPU information collector
-│   │   ├── memory.go           # Memory information collector
-│   │   ├── disk.go             # Disk information collector
-│   │   ├── network.go          # Network information collector
-│   │   └── process.go          # Process information collector
-│   ├── formatter/
-│   │   ├── formatter.go        # Format dispatcher
-│   │   ├── text.go             # Plain text formatter
-│   │   └── pretty.go           # Pretty/colored formatter
-│   └── utils/
-│       └── format.go           # Utility functions
-└── # SysInfo
-
-[![Go](https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat&logo=go)](https://golang.org/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-
-## Overview
-
-SysInfo is a professional-grade, cross-platform command-line utility designed for comprehensive system information collection and analysis. Built with Go, it provides detailed insights into hardware and software configurations including CPU specifications, memory statistics, disk information, network interfaces, process monitoring, and SMART health data.
-
-Engineered for reliability and flexibility, SysInfo offers multiple output formats and granular module selection capabilities. Whether performing routine system audits, gathering diagnostics for support tickets, or monitoring infrastructure health, SysInfo delivers accurate, well-structured information in your preferred format.
-
-## Features
-
-### Core Functionality
-
-**System Information Collection**
-- CPU details including model, architecture, core count, frequency ranges, cache sizes, microcode versions, and feature flags
-- Memory statistics with total, used, available, cached, buffers, swap usage, and physical RAM module specifications
-- Disk information encompassing partitions, usage metrics, filesystem types, I/O statistics, physical disk details, and serial numbers
-- Network interface enumeration with IP addresses, MAC addresses, bandwidth statistics, and connection states
-- Process monitoring displaying running processes with CPU and memory consumption rankings
-- System overview including hostname, operating system, platform details, kernel version, and uptime
-- SMART disk health monitoring for predictive failure analysis (requires elevated privileges)
-
-**Output Format Options**
-- Pretty format: Human-readable colored output with formatted tables and visual hierarchy
-- JSON format: Structured data output for programmatic parsing, API integration, and automation workflows
-- Text format: Plain text output suitable for logging systems, archival, and simple parsing
-- File output: Persistent storage of reports for historical analysis, comparison, and documentation
-
-**Modular Architecture**
-- Selective module execution to collect only required information subsets
-- Default comprehensive mode for complete system snapshots
-- Clean separation of concerns with distinct collector, formatter, and configuration layers
-- Extensible design supporting straightforward addition of new collectors and output formats
-
-### Cross-Platform Support
-
-**Supported Operating Systems**
-- Windows (AMD64, ARM64)
-- Linux (AMD64, ARM64)
-- macOS (Intel, Apple Silicon)
-
-**Platform Characteristics**
-- Single static binary with zero external runtime dependencies
-- Pure Go implementation leveraging gopsutil for platform abstraction
-- Minimal resource footprint and memory consumption
-- No installation or configuration required for basic operation
-
-## Installation
-
-### Download Pre-built Binary
-
-Download the appropriate binary for your platform:
-
-**Windows**
-```powershell
-# Download for your architecture
-# x64: sysinfo-windows-amd64.exe
-# ARM64: sysinfo-windows-arm64.exe
+├── LICENSE
+├── README.md
+└── src/
+    ├── go.mod
+    ├── main.go              # Entry point
+    ├── cmd/
+    │   └── root.go          # CLI command definitions
+    └── internal/
+        ├── collector/       # Data collection modules
+        │   ├── collector.go
+        │   ├── cpu.go
+        │   ├── disk.go
+        │   ├── memory.go
+        │   ├── network.go
+        │   ├── process.go
+        │   ├── smart_*.go   # Platform-specific SMART
+        │   └── system.go
+        ├── config/          # Configuration management
+        │   └── config.go
+        ├── formatter/       # Output formatting
+        │   ├── formatter.go
+        │   ├── pretty.go
+        │   └── text.go
+        ├── types/           # Data structures
+        │   └── types.go
+        └── utils/           # Utility functions
+            └── format.go
 ```
-
-**Linux**
-```bash
-# Download and make executable
-wget https://github.com/mayvqt/SysInfo/releases/latest/download/sysinfo-linux-amd64
-chmod +x sysinfo-linux-amd64
-sudo mv sysinfo-linux-amd64 /usr/local/bin/sysinfo
-```
-
-**macOS**
-```bash
-# Intel Macs
-wget https://github.com/mayvqt/SysInfo/releases/latest/download/sysinfo-darwin-amd64
-# Apple Silicon Macs
-wget https://github.com/mayvqt/SysInfo/releases/latest/download/sysinfo-darwin-arm64
-
-chmod +x sysinfo-darwin-*
-sudo mv sysinfo-darwin-* /usr/local/bin/sysinfo
-```
-
-### Build from Source
-
-Requirements: Go 1.23 or later
-
-```bash
-git clone https://github.com/mayvqt/SysInfo.git
-cd SysInfo/src
-go build -o sysinfo .
-```
-
-Build with embedded version metadata:
-
-```bash
-VERSION="v1.0.0"
-COMMIT=$(git rev-parse --short HEAD)
-BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-
-go build -ldflags "-X main.Version=${VERSION} -X main.Commit=${COMMIT} -X main.BuildTime=${BUILD_TIME}" -o sysinfo .
-```
-
-Cross-compilation for target platforms:
-
-```bash
-# Windows
-GOOS=windows GOARCH=amd64 go build -o sysinfo-windows-amd64.exe .
-
-# Linux
-GOOS=linux GOARCH=amd64 go build -o sysinfo-linux-amd64 .
-
-# macOS
-GOOS=darwin GOARCH=arm64 go build -o sysinfo-darwin-arm64 .
-```
-
-## Usage
-
-### Basic Operations
-
-Execute with default settings to collect all system information with formatted output:
-
-```bash
-./sysinfo
-```
-
-Persist results to file for documentation or analysis:
-
-```bash
-./sysinfo -o system-report.txt
-```
-
-### Output Formats
-
-**Pretty format** (default) - Formatted output with color-coded sections and tabular data:
-```bash
-./sysinfo --format pretty
-```
-
-**JSON format** - Structured data for automation, scripting, and integration:
-```bash
-./sysinfo --format json
-```
-
-**Text format** - Plain text output for logging and archival:
-```bash
-./sysinfo --format text
-```
-
-### Module Selection
-
-Execute specific information collectors as needed:
-
-```bash
-# CPU information only
-./sysinfo --cpu
-
-# Memory and disk information
-./sysinfo --memory --disk
-
-# Network interfaces
-./sysinfo --network
-
-# Top processes
-./sysinfo --process
-
-# System overview
-./sysinfo --system
-
-# SMART disk health (may require sudo/admin)
-./sysinfo --smart
-```
-
-### Advanced Examples
-
-**Generate timestamped JSON reports for automation pipelines:**
-```bash
-./sysinfo --format json --output system-$(date +%Y%m%d).json
-```
-
-**Monitor specific subsystems for targeted diagnostics:**
-```bash
-./sysinfo --cpu --memory --format pretty
-```
-
-**Collect hardware specifications for support documentation:**
-```bash
-./sysinfo --system --cpu --memory --disk --output support-info.txt
-```
-
-**Execute disk health assessment:**
-```bash
-# Linux/macOS (requires elevated privileges)
-sudo ./sysinfo --smart --disk
-
-# Windows (requires administrator privileges)
-./sysinfo --smart --disk
-```
-
-### Command-Line Flags
-
-| Flag | Short | Description | Default |
-|------|-------|-------------|---------|
-| `--format` | `-f` | Output format: json, text, pretty | `pretty` |
-| `--output` | `-o` | Output file path (stdout if omitted) | - |
-| `--verbose` | `-v` | Enable verbose output | `false` |
-| `--all` | - | Collect all available information | `true` |
-| `--system` | - | Collect system information | `false` |
-| `--cpu` | - | Collect CPU information | `false` |
-| `--memory` | - | Collect memory information | `false` |
-| `--disk` | - | Collect disk information | `false` |
-| `--network` | - | Collect network information | `false` |
-| `--process` | - | Collect process information | `false` |
-| `--smart` | - | Collect SMART disk health data | `false` |
-
-Note: Specifying any individual module flag automatically disables the `--all` flag. To collect all information, either omit module flags entirely or explicitly specify `--all`.
-
-## Output Examples
-
-### Pretty Format
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║                      SYSTEM INFORMATION                      ║
-╚══════════════════════════════════════════════════════════════╝
-
-Hostname:           DESKTOP-ABC123
-Operating System:   windows
-Platform:           Microsoft Windows 11 Pro
-Kernel Version:     10.0.22631.4460
-Uptime:             2h 34m 12s
-
-╔══════════════════════════════════════════════════════════════╗
-║                      CPU INFORMATION                         ║
-╚══════════════════════════════════════════════════════════════╝
-
-Model:              Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz
-Physical Cores:     8
-Logical Cores:      8
-Cache Size:         12.0 MB
-Current Speed:      3600 MHz
-...
-```
-
-### JSON Format
-
-```json
-{
-  "system": {
-    "hostname": "DESKTOP-ABC123",
-    "os": "windows",
-    "platform": "Microsoft Windows 11 Pro",
-    "platformFamily": "Standalone Workstation",
-    "platformVersion": "10.0.22631.4460",
-    "kernelVersion": "10.0.22631.4460",
-    "kernelArch": "x86_64",
-    "uptime": 9252
-  },
-  "cpu": {
-    "modelName": "Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz",
-    "vendor": "GenuineIntel",
-    "physicalCores": 8,
-    "logicalCores": 8,
-    "cacheSize": 12582912,
-    ...
-  }
-}
-```
-
-## Platform-Specific Features
-
-### Windows
-
-- RAM module specifications (speed, manufacturer, part numbers) via Windows Management Instrumentation (WMI)
-- Physical disk enumeration (model, serial number, interface type) via WMI queries
-- SMART data collection through WMI (requires administrator privileges)
-- Automatic console pause behavior when executed via Windows Explorer
-
-### Linux
-
-- RAM module specifications via dmidecode utility (requires root privileges)
-- Block device information sourced from /sys filesystem
-- SMART data collection via smartctl (requires root privileges and smartmontools package installation)
-- Systemd-aware uptime calculation for accurate boot time reporting
-
-### macOS
-
-- RAM module specifications via system_profiler utility
-- Disk information retrieval via diskutil
-- SMART data collection via smartctl (requires root privileges and smartmontools installation)
-- Native support for Apple Silicon (M1/M2/M3/M4) processors
-
-## Development
-
-### Project Structure
-
-```
-SysInfo/
-├── src/
-│   ├── main.go                         # Entry point
-│   ├── go.mod                          # Go dependencies
-│   ├── go.sum                          # Dependency checksums
-│   ├── cmd/
-│   │   └── root.go                     # CLI command definitions, flags
-│   └── internal/
-│       ├── config/
-│       │   └── config.go               # Configuration structures
-│       ├── types/
-│       │   └── types.go                # Data structure definitions
-│       ├── collector/
-│       │   ├── system.go               # System information collector
-│       │   ├── cpu.go                  # CPU information collector
-│       │   ├── memory.go               # Memory information collector
-│       │   ├── disk.go                 # Disk information collector
-│       │   ├── network.go              # Network information collector
-│       │   └── process.go              # Process information collector
-│       ├── formatter/
-│       │   ├── json.go                 # JSON output formatter
-│       │   ├── text.go                 # Text output formatter
-│       │   └── pretty.go               # Pretty/colored output formatter
-│       └── utils/
-│           └── format.go               # Utility functions (byte formatting)
-├── .gitignore                          # Git ignore rules
-├── LICENSE                             # MIT license
-└── README.md                           # This file
-```
-
-### Architecture
-
-SysInfo implements a modular collector-formatter architectural pattern:
-
-1. **Configuration Layer** (`config/`): Command-line flag parsing and runtime configuration management
-2. **Data Types Layer** (`types/`): Structured definitions for all collected system information
-3. **Collector Layer** (`collector/`): Independent, specialized modules for gathering specific system metrics
-4. **Formatter Layer** (`formatter/`): Output transformation engines supporting multiple presentation formats
-5. **Utility Layer** (`utils/`): Shared helper functions for data formatting and conversion operations
-
-Architectural benefits:
-- Addition of new collectors without modification to existing codebase
-- Support for additional output formats through isolated formatter implementation
-- Component-level isolation enabling comprehensive unit testing
-- Platform-specific implementation extension without core logic changes
-
-### Adding New Collectors
-
-Implementation workflow:
-
-1. Define data structures in `internal/types/types.go`
-2. Create collector module in `internal/collector/your_collector.go`
-3. Implement collection logic using gopsutil or platform-specific APIs
-4. Register module flag in `cmd/root.go`
-5. Update formatters to render newly collected data
-6. Document functionality and usage patterns
-
-Example:
-
-```go
-// types/types.go
-type GPUData struct {
-    Model       string
-    Memory      uint64
-    Driver      string
-    Temperature float64
-}
-
-// collector/gpu.go
-package collector
-
-import "github.com/mayvqt/sysinfo/internal/types"
-
-func CollectGPU() (*types.GPUData, error) {
-    // Implementation
-    return &types.GPUData{}, nil
-}
-```
-
-### Adding New Formatters
-
-Implementation workflow:
-
-1. Create formatter module in `internal/formatter/your_formatter.go`
-2. Implement format-specific rendering logic
-3. Register format option in `cmd/root.go`
-4. Document format specification and use cases
-
-Example:
-
-```go
-// formatter/xml.go
-package formatter
-
-import "encoding/xml"
-
-func FormatXML(data *types.SystemData) (string, error) {
-    output, err := xml.MarshalIndent(data, "", "  ")
-    return string(output), err
-}
-```
-
-### Dependencies
-
-- **[gopsutil/v3](https://github.com/shirou/gopsutil)** - Cross-platform system and process utilities
-- **[cobra](https://github.com/spf13/cobra)** - CLI framework for command structure and flags
-- **[color](https://github.com/fatih/color)** - Colored terminal output
-- **[tablewriter](https://github.com/olekukonko/tablewriter)** - ASCII table generation
-
-### Testing
-
-Execute test suite:
-
-```bash
-cd src
-go test ./... -v
-```
-
-Generate coverage analysis:
-
-```bash
-go test ./... -v -coverprofile=coverage.out
-go tool cover -html=coverage.out
-```
-
-Execute with race condition detection:
-
-```bash
-go test ./... -v -race
-```
-
-### Contributing
-
-Contributions are welcome. Please adhere to the following guidelines:
-
-1. Fork the repository and create a feature branch: `git checkout -b feature/descriptive-name`
-2. Implement comprehensive tests for new functionality
-3. Verify all tests pass: `go test ./... -v`
-4. Apply standard formatting: `go fmt ./...`
-5. Commit changes with clear, descriptive messages
-6. Submit pull request with detailed description of changes
-
-**Code Standards:**
-- Adhere to standard Go formatting conventions (`go fmt`)
-- Use descriptive, intention-revealing names for variables and functions
-- Document all exported functions and complex logic with comments
-- Maintain single-responsibility principle for functions
-- Handle errors explicitly with appropriate context
-
-## Troubleshooting
-
-### SMART Data Collection Failures
-
-SMART data collection requires elevated privileges and platform-specific tools:
-
-**Windows:**
-- Execute with administrator privileges
-- Verify Windows Management Instrumentation service is operational
-
-**Linux:**
-- Execute with root privileges: `sudo ./sysinfo --smart`
-- Install smartmontools package: `sudo apt-get install smartmontools` (Debian/Ubuntu) or `sudo yum install smartmontools` (RHEL/CentOS)
-
-**macOS:**
-- Execute with root privileges: `sudo ./sysinfo --smart`
-- Install smartmontools via Homebrew: `brew install smartmontools`
-
-### Missing RAM Module Specifications
-
-Detailed RAM module information requires platform-specific utilities:
-
-**Windows:**
-- Typically functions without additional configuration via WMI
-- Verify Windows Management Instrumentation service is running
-
-**Linux:**
-- Install dmidecode utility: `sudo apt-get install dmidecode`
-- Execute with root privileges: `sudo ./sysinfo --memory`
-
-**macOS:**
-- Utilizes built-in system_profiler utility
-- No additional configuration required
-
-### Permission Denied Errors
-
-Certain collectors require elevated execution privileges:
-
-**Linux/macOS:**
-```bash
-sudo ./sysinfo --all
-```
-
-**Windows:**
-- Right-click executable and select "Run as Administrator"
-- Execute from elevated PowerShell or Command Prompt session
-
-### Output Encoding Issues
-
-Character encoding problems in terminal output:
-
-**Windows:**
-- Configure console for UTF-8 encoding: `chcp 65001`
-- Use Windows Terminal for enhanced Unicode support
-
-**Linux/macOS:**
-- Verify terminal supports UTF-8 encoding
-- Confirm LANG environment variable: `echo $LANG`
-
-## Roadmap
-
-Future enhancements planned:
-
-- GPU information collection (NVIDIA, AMD, Intel)
-- Battery and power information for laptops
-- Temperature sensors (CPU, GPU, motherboard)
-- Fan speed monitoring
-- Detailed USB device enumeration
-- PCI device information
-- BIOS/UEFI information
-- Virtualization detection and details
-- Container environment detection
-- HTML output format with charts
-- CSV export for spreadsheet analysis
-- Comparison mode (diff between two reports)
-- Watch mode (continuous monitoring)
-- Web interface for remote monitoring
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Support
-
-- **Issues**: Report bugs or request features via [GitHub Issues](https://github.com/mayvqt/SysInfo/issues)
-- **Discussions**: Ask questions or share ideas in [GitHub Discussions](https://github.com/mayvqt/SysInfo/discussions)
-
-## Acknowledgments
-
-Developed with Go and leveraging the cross-platform capabilities of the [gopsutil](https://github.com/shirou/gopsutil) library for system information collection.
-```
-
-## Extending SysInfo
-
-The codebase is designed to be easily extensible. Here's how to add new functionality:
-
-### Adding a New Collector
-
-1. Create a new file in `internal/collector/` (e.g., `battery.go`)
-2. Define the data structure in `internal/types/types.go`
-3. Implement the collector function
-4. Add the collector to `internal/collector/collector.go`
-5. Add a CLI flag in `cmd/root.go`
-
-Example:
-
-```go
-// internal/types/types.go
-type BatteryData struct {
-    Present     bool    `json:"present"`
-    Percent     float64 `json:"percent"`
-    PluggedIn   bool    `json:"plugged_in"`
-}
-
-// internal/collector/battery.go
-package collector
-
-func CollectBattery() (*types.BatteryData, error) {
-    // Implementation here
-    return &types.BatteryData{}, nil
-}
-
-// internal/collector/collector.go
-if cfg.ShouldCollect("battery") {
-    info.Battery, err = CollectBattery()
-}
-```
-
-### Adding a New Output Format
-
-1. Create a new formatter in `internal/formatter/` (e.g., `xml.go`)
-2. Implement the format function
-3. Add the format to the switch statement in `formatter.go`
 
 ## Dependencies
 
-- [gopsutil](https://github.com/shirou/gopsutil) - Cross-platform system and process utilities
-- [cobra](https://github.com/spf13/cobra) - CLI framework
-- [pflag](https://github.com/spf13/pflag) - Drop-in replacement for Go's flag package
-- [color](https://github.com/fatih/color) - Colored terminal output
-- [tablewriter](https://github.com/olekukonko/tablewriter) - ASCII table generation
+- **[gopsutil](https://github.com/shirou/gopsutil)** — Cross-platform system metrics
+- **[cobra](https://github.com/spf13/cobra)** — CLI framework
+- **[tablewriter](https://github.com/olekukonko/tablewriter)** — ASCII table rendering
+- **[color](https://github.com/fatih/color)** — Terminal color output
 
-## Platform Support
+Install dependencies:
 
-SysInfo is designed to work on:
-
-- ✅ Windows
-- ✅ macOS
-- ✅ Linux
-- ✅ FreeBSD
-
-Some features may have limited availability on certain platforms (e.g., load averages on Windows).
-
-## Requirements for SMART Data
-
-SMART disk data collection may require:
-
-- **Linux**: Root privileges or membership in the `disk` group
-- **Windows**: Administrator privileges
-- **macOS**: Root privileges
-
-Run with elevated privileges:
-
-```bash
-# Linux/macOS
-sudo sysinfo --smart
-
-# Windows (Run PowerShell as Administrator)
-sysinfo --smart
+```powershell
+cd src
+go mod download
 ```
 
-## License
+## Platform Notes
 
-MIT License - see LICENSE file for details
+### Windows
+- SMART data requires Administrator privileges
+- Run from PowerShell or Command Prompt
+- Double-clicking the executable will pause for input before closing
+
+### Linux
+- SMART data requires root (`sudo`)
+- Some metrics may require `/proc` and `/sys` filesystem access
+- Install `smartmontools` for complete SMART support
+
+### macOS
+- SMART data requires root (`sudo`)
+- Some disk metrics may require additional permissions
+- CoreStorage/APFS volumes fully supported
+
+## Troubleshooting
+
+**"Permission denied" when collecting SMART data**
+- Run as Administrator (Windows) or with `sudo` (Linux/macOS)
+
+**"No data collected"**
+- Ensure you're using `--all` or specific module flags
+- Check verbose mode (`--verbose`) for detailed error messages
+
+**Build errors**
+- Verify Go 1.21 or later is installed: `go version`
+- Run `go mod download` to fetch dependencies
+
+**Output is empty or incomplete**
+- Some virtual machines may not expose all hardware details
+- Windows Subsystem for Linux (WSL) has limited hardware access
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please ensure:
+- Code is formatted with `go fmt`
+- All modules are cross-platform compatible
+- New features include appropriate error handling
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## License
 
-## Author
-
-**mayvqt**
-
-## Acknowledgments
-
-- Thanks to the gopsutil project for excellent cross-platform system utilities
-- Inspired by various system information tools like neofetch, htop, and System Information Viewer
+MIT
