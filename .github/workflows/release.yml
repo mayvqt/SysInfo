@@ -87,7 +87,9 @@ jobs:
       - name: Run vet & tests
         run: |
           go vet ./...
-          go test ./... -v
+          go test ./... -v -race -coverprofile=coverage.out
+          echo "Test coverage:"
+          go tool cover -func=coverage.out | tail -1
 
       - name: Build cross-platform binaries
         env:

@@ -6,13 +6,24 @@
 *.so
 *.dylib
 
-# Test binary (built via `go test -c`)
-*.test
-
 # Coverage and profiling outputs
 *.out
 *.cov
 *.coverage
+coverage.html
+coverage.xml
+coverage
+coverage.out
+coverage.txt
+*.prof
+
+# Test binary (built via `go test -c`)
+*.test
+
+# Test artifacts and temporary files
+testdata/output/
+test-output/
+*.test.exe
 
 # Build output / release artifacts
 /releases/
