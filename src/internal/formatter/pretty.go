@@ -45,6 +45,14 @@ func FormatPretty(info *types.SystemInfo) string {
 		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Logical CPUs:"), valueColor.Sprintf("%d", info.CPU.LogicalCPUs)))
 		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Frequency:"), valueColor.Sprintf("%.2f MHz", info.CPU.MHz)))
 
+		if info.CPU.CacheSize > 0 {
+			sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Cache Size:"), valueColor.Sprintf("%d KB", info.CPU.CacheSize)))
+		}
+
+		if info.CPU.Microcode != "" {
+			sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Microcode:"), valueColor.Sprint(info.CPU.Microcode)))
+		}
+
 		if info.CPU.LoadAvg != nil {
 			sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Load Average:"),
 				valueColor.Sprintf("%.2f, %.2f, %.2f", info.CPU.LoadAvg.Load1, info.CPU.LoadAvg.Load5, info.CPU.LoadAvg.Load15)))
@@ -70,12 +78,30 @@ func FormatPretty(info *types.SystemInfo) string {
 			memBar, valueColor.Sprintf("%s (%.1f%%)", info.Memory.UsedFormatted, info.Memory.UsedPercent)))
 		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Free:"), valueColor.Sprint(info.Memory.FreeFormatted)))
 
+		if info.Memory.Cached > 0 {
+			sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Cached:"), valueColor.Sprint(formatBytes(info.Memory.Cached))))
+		}
+		if info.Memory.Buffers > 0 {
+			sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Buffers:"), valueColor.Sprint(formatBytes(info.Memory.Buffers))))
+		}
+
 		if info.Memory.SwapTotal > 0 {
 			sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Swap Total:"), valueColor.Sprint(formatBytes(info.Memory.SwapTotal))))
 			swapBar := createProgressBar(info.Memory.SwapPercent, 30)
 			sb.WriteString(fmt.Sprintf("│ %-20s %s %s\n", labelColor.Sprint("Swap Used:"),
 				swapBar, valueColor.Sprintf("%s (%.1f%%)", formatBytes(info.Memory.SwapUsed), info.Memory.SwapPercent)))
 		}
+
+		if len(info.Memory.Modules) > 0 {
+			sb.WriteString(fmt.Sprintf("│\n│ %s\n", labelColor.Sprint("Physical Modules:")))
+			for _, module := range info.Memory.Modules {
+				sb.WriteString(fmt.Sprintf("│   %s\n", valueColor.Sprintf("%s: %s", module.Locator, formatBytes(module.Capacity))))
+				if module.Speed > 0 {
+					sb.WriteString(fmt.Sprintf("│     Speed: %s, Type: %s\n", valueColor.Sprintf("%d MHz", module.Speed), valueColor.Sprint(module.Type)))
+				}
+			}
+		}
+
 		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n\n"))
 	}
 

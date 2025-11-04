@@ -38,9 +38,13 @@ type CPUData struct {
 	Model       string       `json:"model"`
 	Stepping    int32        `json:"stepping"`
 	MHz         float64      `json:"mhz"`
+	MinMHz      float64      `json:"min_mhz,omitempty"`
+	MaxMHz      float64      `json:"max_mhz,omitempty"`
 	CacheSize   int32        `json:"cache_size"`
 	Usage       []float64    `json:"usage_percent"`
 	LoadAvg     *LoadAverage `json:"load_average,omitempty"`
+	Flags       []string     `json:"flags,omitempty"`
+	Microcode   string       `json:"microcode,omitempty"`
 }
 
 // LoadAverage contains system load averages
@@ -52,25 +56,57 @@ type LoadAverage struct {
 
 // MemoryData contains memory information
 type MemoryData struct {
-	Total          uint64  `json:"total_bytes"`
-	Available      uint64  `json:"available_bytes"`
-	Used           uint64  `json:"used_bytes"`
-	UsedPercent    float64 `json:"used_percent"`
-	Free           uint64  `json:"free_bytes"`
-	TotalFormatted string  `json:"total_formatted"`
-	UsedFormatted  string  `json:"used_formatted"`
-	FreeFormatted  string  `json:"free_formatted"`
-	SwapTotal      uint64  `json:"swap_total_bytes"`
-	SwapUsed       uint64  `json:"swap_used_bytes"`
-	SwapFree       uint64  `json:"swap_free_bytes"`
-	SwapPercent    float64 `json:"swap_used_percent"`
+	Total          uint64         `json:"total_bytes"`
+	Available      uint64         `json:"available_bytes"`
+	Used           uint64         `json:"used_bytes"`
+	UsedPercent    float64        `json:"used_percent"`
+	Free           uint64         `json:"free_bytes"`
+	TotalFormatted string         `json:"total_formatted"`
+	UsedFormatted  string         `json:"used_formatted"`
+	FreeFormatted  string         `json:"free_formatted"`
+	SwapTotal      uint64         `json:"swap_total_bytes"`
+	SwapUsed       uint64         `json:"swap_used_bytes"`
+	SwapFree       uint64         `json:"swap_free_bytes"`
+	SwapPercent    float64        `json:"swap_used_percent"`
+	Modules        []MemoryModule `json:"memory_modules,omitempty"`
+	VirtualTotal   uint64         `json:"virtual_total_bytes,omitempty"`
+	VirtualUsed    uint64         `json:"virtual_used_bytes,omitempty"`
+	Cached         uint64         `json:"cached_bytes,omitempty"`
+	Buffers        uint64         `json:"buffers_bytes,omitempty"`
+	Shared         uint64         `json:"shared_bytes,omitempty"`
+}
+
+// MemoryModule contains information about a physical memory module
+type MemoryModule struct {
+	Locator      string `json:"locator"`
+	Capacity     uint64 `json:"capacity_bytes"`
+	Speed        uint64 `json:"speed_mhz,omitempty"`
+	Type         string `json:"type,omitempty"`
+	Manufacturer string `json:"manufacturer,omitempty"`
+	PartNumber   string `json:"part_number,omitempty"`
+	SerialNumber string `json:"serial_number,omitempty"`
+	FormFactor   string `json:"form_factor,omitempty"`
 }
 
 // DiskData contains disk and partition information
 type DiskData struct {
-	Partitions []PartitionInfo `json:"partitions"`
-	IOStats    []DiskIOStat    `json:"io_stats,omitempty"`
-	SMARTData  []SMARTInfo     `json:"smart_data,omitempty"`
+	Partitions    []PartitionInfo `json:"partitions"`
+	PhysicalDisks []PhysicalDisk  `json:"physical_disks,omitempty"`
+	IOStats       []DiskIOStat    `json:"io_stats,omitempty"`
+	SMARTData     []SMARTInfo     `json:"smart_data,omitempty"`
+}
+
+// PhysicalDisk contains information about physical disks
+type PhysicalDisk struct {
+	Name          string `json:"name"`
+	Model         string `json:"model,omitempty"`
+	SerialNumber  string `json:"serial_number,omitempty"`
+	Size          uint64 `json:"size_bytes"`
+	SizeFormatted string `json:"size_formatted"`
+	Type          string `json:"type,omitempty"`      // HDD, SSD, NVMe, etc.
+	Interface     string `json:"interface,omitempty"` // SATA, NVMe, USB, etc.
+	RPM           uint32 `json:"rpm,omitempty"`       // For HDDs
+	Removable     bool   `json:"removable"`
 }
 
 // PartitionInfo contains information about a disk partition

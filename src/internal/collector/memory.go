@@ -21,7 +21,7 @@ func CollectMemory() (*types.MemoryData, error) {
 		swap = &mem.SwapMemoryStat{}
 	}
 
-	return &types.MemoryData{
+	data := &types.MemoryData{
 		Total:          vmem.Total,
 		Available:      vmem.Available,
 		Used:           vmem.Used,
@@ -34,5 +34,31 @@ func CollectMemory() (*types.MemoryData, error) {
 		SwapUsed:       swap.Used,
 		SwapFree:       swap.Free,
 		SwapPercent:    swap.UsedPercent,
-	}, nil
+		Cached:         vmem.Cached,
+		Buffers:        vmem.Buffers,
+		Shared:         vmem.Shared,
+	}
+
+	// Try to collect physical memory module information
+	modules := collectMemoryModules()
+	if len(modules) > 0 {
+		data.Modules = modules
+	}
+
+	return data, nil
+}
+
+// collectMemoryModules attempts to collect physical RAM module information
+// This requires platform-specific implementation or external tools
+func collectMemoryModules() []types.MemoryModule {
+	// This is a placeholder - full implementation would require:
+	// - Windows: WMI queries to Win32_PhysicalMemory
+	// - Linux: dmidecode or /sys/devices/system/memory
+	// - macOS: system_profiler SPMemoryDataType
+	modules := make([]types.MemoryModule, 0)
+
+	// Platform-specific collection would go here
+	// For now, return empty to avoid errors
+
+	return modules
 }
