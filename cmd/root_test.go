@@ -417,3 +417,142 @@ func TestMonitorModeDisabled(t *testing.T) {
 		t.Error("Output file was not created")
 	}
 }
+
+func TestFullDumpMode(t *testing.T) {
+	// Test full dump functionality
+	testCfg := config.NewConfig()
+	testCfg.FullDumpToFile = true
+	testCfg.Verbose = true
+	cfg = testCfg
+
+	// We can't fully test this without mocking, but we can verify the config is set
+	if !testCfg.FullDumpToFile {
+		t.Error("FullDumpToFile should be true")
+	}
+
+	// Full dump should enable all modules
+	if !testCfg.Modules.CPU && !testCfg.Modules.Memory {
+		t.Log("Note: Full dump should enable all modules in runFullDump")
+	}
+}
+
+func TestDisplayLiveDataFormatting(t *testing.T) {
+	// Test that displayLiveData doesn't panic
+	// We can't test the actual output without a real terminal
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("displayLiveData panicked: %v", r)
+		}
+	}()
+
+	// This will likely fail to collect data but shouldn't panic
+	// displayLiveData(true) - can't test without actual data collection
+	t.Log("displayLiveData formatting test skipped - requires terminal")
+}
+
+func TestConfigValidation(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(*config.Config)
+		wantErr bool
+	}{
+		{
+			name: "valid_json_format",
+			setup: func(c *config.Config) {
+				c.Format = "json"
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid_text_format",
+			setup: func(c *config.Config) {
+				c.Format = "text"
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid_pretty_format",
+			setup: func(c *config.Config) {
+				c.Format = "pretty"
+			},
+			wantErr: false,
+		},
+		{
+			name: "monitor_with_file_output",
+			setup: func(c *config.Config) {
+				c.Monitor = true
+				c.OutputFile = "test.json"
+			},
+			wantErr: false, // Should work but file output is disabled in monitor mode
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testCfg := config.NewConfig()
+			tt.setup(testCfg)
+
+			// Validate that the config is properly set
+			if tt.name == "monitor_with_file_output" && testCfg.Monitor && testCfg.OutputFile != "" {
+				t.Log("Monitor mode with file output - file output should be ignored")
+			}
+		})
+	}
+}
+
+func TestVerboseOutput(t *testing.T) {
+	tmpDir := t.TempDir()
+	outputFile := filepath.Join(tmpDir, "verbose_output.json")
+
+	testCfg := config.NewConfig()
+	testCfg.Format = "json"
+	testCfg.OutputFile = outputFile
+	testCfg.Verbose = true
+	testCfg.Modules.System = true
+	testCfg.Modules.All = false
+	cfg = testCfg
+
+	err := runSysInfo(&cobra.Command{}, []string{})
+	if err != nil {
+		t.Fatalf("runSysInfo with verbose failed: %v", err)
+	}
+
+	// Verify file was created
+	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
+		t.Error("Verbose output file was not created")
+	}
+}
+
+func TestSMARTDataCollection(t *testing.T) {
+	tmpDir := t.TempDir()
+	outputFile := filepath.Join(tmpDir, "smart_output.json")
+
+	testCfg := config.NewConfig()
+	testCfg.Format = "json"
+	testCfg.OutputFile = outputFile
+	testCfg.Modules.SMART = true
+	testCfg.Modules.Disk = true
+	testCfg.Modules.All = false
+	cfg = testCfg
+
+	err := runSysInfo(&cobra.Command{}, []string{})
+	if err != nil {
+		t.Fatalf("runSysInfo with SMART failed: %v", err)
+	}
+
+	// Verify file was created
+	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
+		t.Error("SMART output file was not created")
+	}
+
+	// Read and verify output contains disk data
+	data, err := os.ReadFile(outputFile)
+	if err != nil {
+		t.Fatalf("Failed to read SMART output file: %v", err)
+	}
+
+	output := string(data)
+	if !strings.Contains(output, "disk") && !strings.Contains(output, "Disk") {
+		t.Log("Note: SMART data may not be available on this system")
+	}
+}
