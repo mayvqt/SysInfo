@@ -16,23 +16,30 @@ func TestRootCommand(t *testing.T) {
 	oldStdout := os.Stdout
 
 	// Create a pipe to capture output
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("Failed to create pipe: %v", err)
+	}
 	os.Stdout = w
 
 	// Reset rootCmd for testing
 	rootCmd.SetArgs([]string{"--help"})
 
-	err := Execute()
+	err = Execute()
 	if err != nil {
 		t.Errorf("Execute with --help failed: %v", err)
 	}
 
 	// Restore stdout
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Errorf("Failed to close pipe writer: %v", err)
+	}
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	if _, err := buf.ReadFrom(r); err != nil {
+		t.Fatalf("Failed to read from pipe: %v", err)
+	}
 	output := buf.String()
 
 	// Verify help output contains expected text
@@ -174,7 +181,10 @@ func TestRunSysInfoWithVerbose(t *testing.T) {
 
 	// Capture stderr for verbose output
 	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("Failed to create pipe: %v", err)
+	}
 	os.Stderr = w
 
 	testCfg := config.NewConfig()
@@ -183,19 +193,25 @@ func TestRunSysInfoWithVerbose(t *testing.T) {
 	testCfg.Verbose = true
 	cfg = testCfg
 
-	err := runSysInfo(&cobra.Command{}, []string{})
+	err = runSysInfo(&cobra.Command{}, []string{})
 	if err != nil {
-		w.Close()
+		if closeErr := w.Close(); closeErr != nil {
+			t.Logf("Failed to close pipe writer: %v", closeErr)
+		}
 		os.Stderr = oldStderr
 		t.Fatalf("runSysInfo with verbose failed: %v", err)
 	}
 
 	// Restore stderr and capture output
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Errorf("Failed to close pipe writer: %v", err)
+	}
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	if _, err := buf.ReadFrom(r); err != nil {
+		t.Fatalf("Failed to read from pipe: %v", err)
+	}
 	stderrOutput := buf.String()
 
 	// Verify verbose messages appeared
