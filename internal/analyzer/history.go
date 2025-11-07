@@ -130,9 +130,7 @@ func (h *HistoryDB) RecordAnalysis(smart *types.SMARTInfo, result *AnalysisResul
 		return err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
-			// Intentionally ignore rollback errors (transaction may be committed or already rolled back)
-		}
+		_ = tx.Rollback() // Ignore rollback errors (transaction may be committed or already rolled back)
 	}()
 
 	// Count issues by severity
