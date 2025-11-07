@@ -35,11 +35,13 @@ type FileConfig struct {
 	// SMART monitoring configuration
 	SMART struct {
 		EnableAlerts    bool `yaml:"enable_alerts,omitempty"`
+		EnableAnalysis  bool `yaml:"enable_analysis,omitempty"` // Auto-analyze when collecting SMART
 		AlertThresholds struct {
 			TemperatureCritical int `yaml:"temperature_critical,omitempty"`
 			TemperatureWarning  int `yaml:"temperature_warning,omitempty"`
 		} `yaml:"alert_thresholds,omitempty"`
 		WebhookURL string `yaml:"webhook_url,omitempty"`
+		DBPath     string `yaml:"db_path,omitempty"` // Custom history database path
 	} `yaml:"smart,omitempty"`
 
 	// Process monitoring configuration

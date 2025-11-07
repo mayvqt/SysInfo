@@ -49,6 +49,15 @@ Examples
 # Comprehensive SMART data with health assessment
 .\\sysinfo.exe --smart --format json
 
+# Enhanced SMART analysis (subcommand)
+sudo sysinfo smart analyze
+
+# View SMART history and trends
+sudo sysinfo smart history --period 30d
+
+# Quick health check (for monitoring scripts)
+sudo sysinfo smart check
+
 # Full system dump - captures EVERYTHING to JSON file
 .\\sysinfo.exe --full-dump
 
@@ -69,6 +78,18 @@ Examples
 - `--smart`: comprehensive SMART disk data with health assessment (requires elevation)
 - `--gpu`: GPU information including temperature, utilization, memory, and power draw
 - `--battery`: battery information including charge level, health, time remaining, and cycle count
+
+### SMART Analysis Options
+Use the `smart` subcommand for advanced disk health monitoring:
+- `sysinfo smart analyze`: Deep SMART analysis with failure prediction and history tracking
+- `sysinfo smart history`: View historical trends and patterns
+- `sysinfo smart check`: Quick health check (no history storage)
+
+**Flags:**
+- `--db <path>`: Custom database path
+- `--period <duration>`: History period for `history` command (e.g., 1h, 24h, 7d, 30d)
+- `--alerts`: Enable webhook notifications (for `analyze` command)
+- `--verbose`: Show detailed progress
 
 ### Output Options
 - `--format`, `-f`: output format: `pretty|text|json` (default: pretty)
@@ -127,6 +148,33 @@ display:
 
 ## SMART Data Features
 
+### Requirements
+
+**For basic `--smart` flag** (raw SMART data collection):
+- Linux/macOS: `smartmontools` package required
+  ```bash
+  # Debian/Ubuntu
+  sudo apt install smartmontools
+  
+  # macOS
+  brew install smartmontools
+  
+  # RHEL/CentOS/Fedora
+  sudo dnf install smartmontools
+  ```
+- Windows: No external dependencies (uses built-in WMI)
+- Elevated privileges required on all platforms (`sudo` on Linux/macOS, Administrator on Windows)
+
+**If `smartmontools` is not installed**: 
+- The `--smart` flag will silently skip SMART collection (no error)
+- Only disk/partition information will be shown
+- Enhanced analysis commands (`sysinfo smart analyze/history/check`) will show: "No SMART data available"
+
+**For enhanced SMART analysis** (`sysinfo smart analyze/history/check`):
+- Same `smartmontools` requirement as above
+- SQLite database for history (automatically created at `~/.config/sysinfo/smart.db`)
+- Go-native SQLite driver (no external dependencies)
+
 SysInfo provides professional-grade SMART monitoring with:
 
 **Comprehensive Attributes** (70+ tracked):
@@ -146,6 +194,108 @@ SysInfo provides professional-grade SMART monitoring with:
 - SSD wear level and life remaining
 - Temperature status (NORMAL/WARM/HIGH/CRITICAL)
 - Critical attribute monitoring (reallocated sectors, pending sectors, uncorrectable errors, etc.)
+
+### Enhanced SMART Analysis
+
+SysInfo includes advanced SMART analysis features for predictive maintenance:
+
+**Predictive Failure Detection**:
+```bash
+# Perform deep SMART analysis with failure prediction
+sudo sysinfo smart analyze
+
+# Enable webhook alerts for critical issues
+sudo sysinfo smart analyze --alerts
+
+# Example output:
+# /dev/sda
+# ======================================================================
+# Overall Health: ✓ GOOD
+# Failure Risk: 5.2%
+#
+# SSD Wear Analysis:
+#   Status: GOOD
+#   Remaining Life: 87.3%
+#   Percent Used: 12.7%
+#   Estimated Remaining: 1,247 days (3.4 years)
+#
+# Recommendations:
+#   • Continue monitoring drive health
+#   • Schedule backup within 90 days
+```
+
+**Historical Tracking**:
+```bash
+# View SMART history and trends (default: 7 days)
+sudo sysinfo smart history
+
+# View last 30 days
+sudo sysinfo smart history --period 30d
+
+# Use custom database location
+sudo sysinfo smart history --db /var/lib/sysinfo/smart.db
+
+# Example output:
+# SMART History (Last 7d)
+# ======================================================================
+#
+# Device: /dev/sda
+# ----------------------------------------------------------------------
+#   Recent Records: 42
+#     2025-11-07 14:30 | Health: GOOD     | Temp:  42°C | Issues: 0 (Critical: 0)
+#     2025-11-07 08:15 | Health: GOOD     | Temp:  38°C | Issues: 0 (Critical: 0)
+#     ...
+#
+#   Trends:
+#     Temperature: stable (Avg: 40.2°C, Min: 35°C, Max: 48°C)
+#     Health Status: stable
+#     SSD Wear Rate: 0.0023% per day
+#     Estimated End of Life: 2028-04-15
+```
+
+**Alert System** (Webhook Notifications):
+```bash
+# Enable alerts for critical disk events
+sudo sysinfo smart analyze --alerts
+
+# Quick health check (useful for monitoring scripts)
+sudo sysinfo smart check
+
+# Configure webhook in config file (~/.config/sysinfo/config.yaml):
+# smart_alerts:
+#   enabled: true
+#   webhook_url: "https://your-webhook.example.com/alerts"
+#   min_level: "WARNING"  # INFO, WARNING, or CRITICAL
+#   cooldown: 60  # minutes between alerts for same device
+```
+
+**Features**:
+- **Health Classification**: GOOD, WARNING, CRITICAL, FAILING, UNKNOWN
+- **Temperature Monitoring**: Configurable warning (60°C) and critical (70°C) thresholds
+- **SSD Lifespan Estimation**: Calculates remaining lifetime based on wear metrics
+- **Trend Analysis**: Tracks temperature, health degradation, and wear rate over time
+- **Webhook Alerts**: JSON notifications for critical events (failure predictions, high wear, temperature)
+- **SQLite History**: Automatic tracking of SMART metrics with configurable retention
+- **Zero Configuration**: Works out-of-box with sensible defaults
+
+**Custom Database Path**:
+```bash
+# Use custom database location
+sudo sysinfo smart analyze --db /var/lib/sysinfo/smart.db
+```
+
+**Quick Health Check**:
+```bash
+# Fast health check for all drives (no history storage)
+sudo sysinfo smart check
+
+# Example output:
+# ✓ /dev/sda            GOOD
+# ⚠ /dev/nvme0n1        WARNING  [SSD Life: 15.3%]
+# ✗ /dev/sdb            CRITICAL [FAILURE PREDICTED: 87.2%]
+#
+# ⚠ Issues detected - run 'sysinfo smart analyze' for details
+```
 
 ## GPU Information Features
 
@@ -188,6 +338,12 @@ SysInfo provides comprehensive GPU monitoring with cross-platform support:
 - SMART data requires `smartmontools` (brew install) and sudo
 - Memory module info via system_profiler (future enhancement)
 - NVMe/Apple Silicon SSD support included
+
+## Documentation
+
+- **[Configuration Guide](docs/CONFIGURATION.md)** - Complete configuration file reference and examples
+- **[Roadmap](docs/ROADMAP.md)** - Development roadmap and completed features
+- **[SMART Monitoring](docs/ROADMAP.md#phase-2-advanced-features)** - Enhanced SMART analysis, historical tracking, and alerts
 
 ## Development
 
