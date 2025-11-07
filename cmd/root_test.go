@@ -325,56 +325,97 @@ func TestAllFlagDefault(t *testing.T) {
 }
 
 func TestFullDumpMode(t *testing.T) {
-	// Test full dump functionality
-	testCfg := config.NewConfig()
-	testCfg.FullDumpToFile = true
-	testCfg.Verbose = true
-	cfg = testCfg
+	// Save current directory
+	originalDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get working directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir)
+	}()
 
-	// We can't fully test this without mocking, but we can verify the config is set
-	if !testCfg.FullDumpToFile {
-		t.Error("FullDumpToFile should be true")
+	// Create temp directory and change to it so dump file is created there
+	tmpDir := t.TempDir()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
 	}
 
-	// Full dump should enable all modules
-	if !testCfg.Modules.CPU && !testCfg.Modules.Memory {
-		t.Log("Note: Full dump should enable all modules in runFullDump")
+	testCfg := config.NewConfig()
+	testCfg.FullDumpToFile = true
+	cfg = testCfg
+
+	// Run the full dump
+	err = runSysInfo(&cobra.Command{}, []string{})
+	if err != nil {
+		t.Fatalf("runFullDump failed: %v", err)
+	}
+
+	// Verify the dump file was created
+	dumpFile := filepath.Join(tmpDir, "sysinfo_dump.json")
+	if _, err := os.Stat(dumpFile); os.IsNotExist(err) {
+		t.Error("Full dump file was not created")
+		return
+	}
+
+	// Verify file has content
+	data, err := os.ReadFile(dumpFile)
+	if err != nil {
+		t.Fatalf("Failed to read dump file: %v", err)
+	}
+
+	if len(data) == 0 {
+		t.Error("Dump file is empty")
+	}
+
+	// Verify it's valid JSON
+	output := string(data)
+	if !strings.HasPrefix(strings.TrimSpace(output), "{") {
+		t.Error("Dump file doesn't contain valid JSON")
 	}
 }
 
 func TestConfigValidation(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(*config.Config)
+		format  string
 		wantErr bool
 	}{
 		{
-			name: "valid_json_format",
-			setup: func(c *config.Config) {
-				c.Format = "json"
-			},
+			name:    "valid_json_format",
+			format:  "json",
 			wantErr: false,
 		},
 		{
-			name: "valid_text_format",
-			setup: func(c *config.Config) {
-				c.Format = "text"
-			},
+			name:    "valid_text_format",
+			format:  "text",
 			wantErr: false,
 		},
 		{
-			name: "valid_pretty_format",
-			setup: func(c *config.Config) {
-				c.Format = "pretty"
-			},
+			name:    "valid_pretty_format",
+			format:  "pretty",
 			wantErr: false,
+		},
+		{
+			name:    "invalid_format",
+			format:  "invalid",
+			wantErr: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			outputFile := filepath.Join(tmpDir, "output.txt")
+
 			testCfg := config.NewConfig()
-			tt.setup(testCfg)
+			testCfg.Format = tt.format
+			testCfg.OutputFile = outputFile
+			cfg = testCfg
+
+			err := runSysInfo(&cobra.Command{}, []string{})
+			if (err != nil) != tt.wantErr {
+				t.Errorf("runSysInfo() error = %v, wantErr %v", err, tt.wantErr)
+			}
 		})
 	}
 }

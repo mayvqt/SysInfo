@@ -51,14 +51,6 @@ func CollectCPU() (*types.CPUData, error) {
 		Microcode:   cpuInfo[0].Microcode,
 	}
 
-	// Try to get CPU frequency info
-	if len(cpuInfo) > 0 {
-		// Some systems may have min/max MHz info
-		if cpuInfo[0].Mhz > 0 {
-			data.MaxMHz = cpuInfo[0].Mhz
-		}
-	}
-
 	// Get load average (Unix-like systems)
 	loadAvg, err := load.Avg()
 	if err == nil {
