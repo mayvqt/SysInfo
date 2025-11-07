@@ -10,7 +10,6 @@ SysInfo is a comprehensive, cross-platform command-line tool and Go library for 
 - **GPU Monitoring**: Detailed GPU information including temperature, utilization, memory usage, and power draw (NVIDIA, AMD, Intel)
 - **SMART Health Monitoring**: Professional-grade disk health assessment with failure prediction and SSD wear tracking
 - **Multiple Output Formats**: `pretty`, `text`, and `json`
-- **Live Monitoring Mode**: Real-time system stats that update in place (like htop/top)
 - **Full System Dump**: Single command to capture everything to JSON for analysis
 - **Single Binary**: Easy deployment and automation
 - **Cross-platform**: Linux, macOS, and Windows (with platform-optimized collectors)
@@ -43,12 +42,6 @@ Examples
 # CPU + memory only, JSON format
 .\\sysinfo.exe --cpu --memory --format json
 
-# Live monitoring mode - updates every 2 seconds (like task manager)
-.\\sysinfo.exe --cpu --memory --monitor
-
-# Live monitoring with custom interval
-.\\sysinfo.exe --cpu --memory --process --monitor --interval 5
-
 # Comprehensive SMART data with health assessment
 .\\sysinfo.exe --smart --format json
 
@@ -77,10 +70,6 @@ Examples
 - `--output`, `-o`: write output to file instead of stdout
 - `--verbose`, `-v`: enable verbose logging
 - `--full-dump`: collect ALL system info and save to `sysinfo_dump.json` (includes everything)
-
-### Monitor Mode
-- `--monitor`, `-m`: enable live monitoring mode (continuous updates)
-- `--interval`, `-i`: update interval in seconds for monitor mode (default: 2)
 
 Run `--help` for the complete flag list and examples.
 

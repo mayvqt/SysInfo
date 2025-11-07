@@ -11,12 +11,6 @@ type Config struct {
 	// Verbosity level
 	Verbose bool
 
-	// Monitor mode - continuously update output
-	Monitor bool
-
-	// Monitor interval in seconds
-	MonitorInterval int
-
 	// Full dump mode - collect everything and save to JSON file
 	FullDumpToFile bool
 
@@ -40,11 +34,9 @@ type ModuleConfig struct {
 // NewConfig creates a default configuration
 func NewConfig() *Config {
 	return &Config{
-		Format:          "pretty",
-		OutputFile:      "",
-		Verbose:         false,
-		Monitor:         false,
-		MonitorInterval: 2,
+		Format:     "pretty",
+		OutputFile: "",
+		Verbose:    false,
 		Modules: ModuleConfig{
 			All: true,
 		},
