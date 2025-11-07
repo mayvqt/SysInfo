@@ -135,9 +135,10 @@ func (h *HistoryDB) RecordAnalysis(smart *types.SMARTInfo, result *AnalysisResul
 	criticalCount := 0
 	warningCount := 0
 	for _, issue := range result.Issues {
-		if issue.Severity == SeverityCritical {
+		switch issue.Severity {
+		case SeverityCritical:
 			criticalCount++
-		} else if issue.Severity == SeverityWarning {
+		case SeverityWarning:
 			warningCount++
 		}
 	}

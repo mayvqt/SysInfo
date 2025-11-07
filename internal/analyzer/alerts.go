@@ -92,7 +92,8 @@ func (am *AlertManager) generateAlerts(result *AnalysisResult) []Alert {
 	}
 
 	// Overall health status alert
-	if result.OverallHealth == HealthCritical || result.OverallHealth == HealthFailing {
+	switch result.OverallHealth {
+	case HealthCritical, HealthFailing:
 		alerts = append(alerts, Alert{
 			Level:       AlertCritical,
 			Device:      result.Device,
@@ -106,7 +107,7 @@ func (am *AlertManager) generateAlerts(result *AnalysisResult) []Alert {
 				"issue_count":         len(result.Issues),
 			},
 		})
-	} else if result.OverallHealth == HealthWarning {
+	case HealthWarning:
 		if am.shouldSendAlert(AlertWarning) {
 			alerts = append(alerts, Alert{
 				Level:       AlertWarning,

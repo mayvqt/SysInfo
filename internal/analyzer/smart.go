@@ -133,7 +133,7 @@ func (a *SMARTAnalyzer) Analyze(smart *types.SMARTInfo) *AnalysisResult {
 	a.determineOverallHealth(result)
 
 	// Generate recommendations
-	a.generateRecommendations(smart, result)
+	a.generateRecommendations(result)
 
 	return result
 }
@@ -165,7 +165,8 @@ func (a *SMARTAnalyzer) analyzeTemperature(smart *types.SMARTInfo, result *Analy
 func (a *SMARTAnalyzer) analyzeAttributes(smart *types.SMARTInfo, result *AnalysisResult) {
 	for _, attr := range smart.DetailedAttribs {
 		// Check if attribute has failed
-		if attr.WhenFailed == "FAILING_NOW" {
+		switch attr.WhenFailed {
+		case "FAILING_NOW":
 			result.Issues = append(result.Issues, Issue{
 				Severity:    SeverityCritical,
 				Code:        "ATTRIBUTE_FAILING",
@@ -173,7 +174,7 @@ func (a *SMARTAnalyzer) analyzeAttributes(smart *types.SMARTInfo, result *Analys
 				AttributeID: attr.ID,
 				Value:       fmt.Sprintf("%d (threshold: %d)", attr.Value, attr.Threshold),
 			})
-		} else if attr.WhenFailed == "In_the_past" {
+		case "In_the_past":
 			result.Issues = append(result.Issues, Issue{
 				Severity:    SeverityWarning,
 				Code:        "ATTRIBUTE_FAILED_PAST",
@@ -296,9 +297,10 @@ func (a *SMARTAnalyzer) predictiveAnalysis(smart *types.SMARTInfo, result *Analy
 	criticalCount := 0
 	warningCount := 0
 	for _, issue := range result.Issues {
-		if issue.Severity == SeverityCritical {
+		switch issue.Severity {
+		case SeverityCritical:
 			criticalCount++
-		} else if issue.Severity == SeverityWarning {
+		case SeverityWarning:
 			warningCount++
 		}
 	}
@@ -348,9 +350,10 @@ func (a *SMARTAnalyzer) determineOverallHealth(result *AnalysisResult) {
 	hasCritical := false
 	hasWarning := false
 	for _, issue := range result.Issues {
-		if issue.Severity == SeverityCritical {
+		switch issue.Severity {
+		case SeverityCritical:
 			hasCritical = true
-		} else if issue.Severity == SeverityWarning {
+		case SeverityWarning:
 			hasWarning = true
 		}
 	}
@@ -372,7 +375,7 @@ func (a *SMARTAnalyzer) determineOverallHealth(result *AnalysisResult) {
 }
 
 // generateRecommendations generates actionable recommendations
-func (a *SMARTAnalyzer) generateRecommendations(smart *types.SMARTInfo, result *AnalysisResult) {
+func (a *SMARTAnalyzer) generateRecommendations(result *AnalysisResult) {
 	if result.OverallHealth == HealthCritical {
 		result.Recommendations = append(result.Recommendations, "URGENT: Back up all data immediately")
 		result.Recommendations = append(result.Recommendations, "Schedule drive replacement as soon as possible")

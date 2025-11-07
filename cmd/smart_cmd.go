@@ -214,10 +214,11 @@ func runSmartCheck(cmd *cobra.Command, args []string) error {
 		result := smartAnalyzer.Analyze(&smart)
 
 		status := "✓"
-		if result.OverallHealth == analyzer.HealthCritical || result.OverallHealth == analyzer.HealthFailing {
+		switch result.OverallHealth {
+		case analyzer.HealthCritical, analyzer.HealthFailing:
 			status = "✗"
 			allHealthy = false
-		} else if result.OverallHealth == analyzer.HealthWarning {
+		case analyzer.HealthWarning:
 			status = "⚠"
 			allHealthy = false
 		}
@@ -442,11 +443,14 @@ func displaySSDWear(wear *analyzer.SSDWearInfo) {
 func displayIssues(issues []analyzer.Issue) {
 	fmt.Printf("\nIssues Found: %d\n", len(issues))
 	for _, issue := range issues {
-		severity := "INFO"
-		if issue.Severity == analyzer.SeverityCritical {
+		var severity string
+		switch issue.Severity {
+		case analyzer.SeverityCritical:
 			severity = "CRITICAL"
-		} else if issue.Severity == analyzer.SeverityWarning {
+		case analyzer.SeverityWarning:
 			severity = "WARNING"
+		default:
+			severity = "INFO"
 		}
 		fmt.Printf("  [%s] %s\n", severity, issue.Description)
 	}
