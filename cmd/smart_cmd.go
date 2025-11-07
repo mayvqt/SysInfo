@@ -78,7 +78,7 @@ func init() {
 	smartCmd.AddCommand(smartCheckCmd)
 
 	// Shared flags for all smart subcommands
-	smartCmd.PersistentFlags().StringVar(&smartDBPath, "db", "", "Custom database path (default: ~/.config/sysinfo/smart.db)")
+	smartCmd.PersistentFlags().StringVar(&smartDBPath, "db", "", "Custom database path (default: smart.db next to binary)")
 	smartCmd.PersistentFlags().BoolVarP(&cfg.Verbose, "verbose", "v", false, "Verbose output")
 
 	// History-specific flags
@@ -259,11 +259,13 @@ func initSMARTDatabase() (*analyzer.HistoryDB, *config.FileConfig, error) {
 		dbPath = fileConfig.SMART.DBPath
 	}
 	if dbPath == "" {
-		home, err := os.UserHomeDir()
+		// Default to placing database next to the binary (for multi-OS support)
+		exePath, err := os.Executable()
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get home directory: %w", err)
+			return nil, nil, fmt.Errorf("failed to get executable path: %w", err)
 		}
-		dbPath = filepath.Join(home, ".config", "sysinfo", "smart.db")
+		exeDir := filepath.Dir(exePath)
+		dbPath = filepath.Join(exeDir, "smart.db")
 	}
 
 	// Ensure directory exists
