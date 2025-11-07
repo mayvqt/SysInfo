@@ -48,6 +48,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&cfg.Modules.Network, "network", false, "Collect network information")
 	rootCmd.Flags().BoolVar(&cfg.Modules.Process, "process", false, "Collect process information")
 	rootCmd.Flags().BoolVar(&cfg.Modules.SMART, "smart", false, "Collect SMART disk data (may require elevated privileges)")
+	rootCmd.Flags().BoolVar(&cfg.Modules.GPU, "gpu", false, "Collect GPU information")
 }
 
 func Execute() error {
@@ -62,7 +63,7 @@ func runSysInfo(cmd *cobra.Command, args []string) error {
 
 	// If any specific module is selected, disable --all
 	if cfg.Modules.System || cfg.Modules.CPU || cfg.Modules.Memory ||
-		cfg.Modules.Disk || cfg.Modules.Network || cfg.Modules.Process || cfg.Modules.SMART {
+		cfg.Modules.Disk || cfg.Modules.Network || cfg.Modules.Process || cfg.Modules.SMART || cfg.Modules.GPU {
 		cfg.Modules.All = false
 	}
 
@@ -132,6 +133,7 @@ func runFullDump() error {
 	dumpConfig.Modules.Network = true
 	dumpConfig.Modules.Process = true
 	dumpConfig.Modules.SMART = true
+	dumpConfig.Modules.GPU = true
 	dumpConfig.Format = "json"
 
 	fmt.Fprintf(os.Stderr, "✓ Collecting system information...\n")
@@ -178,6 +180,7 @@ func runFullDump() error {
 	fmt.Fprintf(os.Stderr, "    • Network interfaces and statistics\n")
 	fmt.Fprintf(os.Stderr, "    • Process information\n")
 	fmt.Fprintf(os.Stderr, "    • Comprehensive SMART data with health assessment\n")
+	fmt.Fprintf(os.Stderr, "    • GPU information\n")
 	fmt.Fprintf(os.Stderr, "═══════════════════════════════════════════════════════════════\n")
 	fmt.Fprintf(os.Stderr, "\n")
 

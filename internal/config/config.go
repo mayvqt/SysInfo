@@ -34,6 +34,7 @@ type ModuleConfig struct {
 	Network bool
 	Process bool
 	SMART   bool
+	GPU     bool
 }
 
 // NewConfig creates a default configuration
@@ -71,6 +72,8 @@ func (c *Config) ShouldCollect(module string) bool {
 		return c.Modules.Process
 	case "smart":
 		return c.Modules.SMART
+	case "gpu":
+		return c.Modules.GPU
 	default:
 		return false
 	}

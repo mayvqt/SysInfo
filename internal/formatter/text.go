@@ -185,6 +185,58 @@ func FormatText(info *types.SystemInfo) string {
 		sb.WriteString("\n")
 	}
 
+	// GPU information
+	if info.GPU != nil && len(info.GPU.GPUs) > 0 {
+		sb.WriteString("GPU INFORMATION\n")
+		for _, gpu := range info.GPU.GPUs {
+			sb.WriteString(fmt.Sprintf("GPU %d: %s\n", gpu.Index, gpu.Name))
+			if gpu.Vendor != "" {
+				sb.WriteString(fmt.Sprintf("  Vendor: %s\n", gpu.Vendor))
+			}
+			if gpu.Driver != "" {
+				sb.WriteString(fmt.Sprintf("  Driver: %s", gpu.Driver))
+				if gpu.DriverVersion != "" {
+					sb.WriteString(fmt.Sprintf(" (Version: %s)", gpu.DriverVersion))
+				}
+				sb.WriteString("\n")
+			}
+			if gpu.MemoryTotal > 0 {
+				sb.WriteString(fmt.Sprintf("  Memory: %s", gpu.MemoryFormatted))
+				if gpu.MemoryUsed > 0 {
+					usedPercent := float64(gpu.MemoryUsed) / float64(gpu.MemoryTotal) * 100
+					sb.WriteString(fmt.Sprintf(" (Used: %s, %.1f%%)", formatBytes(gpu.MemoryUsed), usedPercent))
+				}
+				sb.WriteString("\n")
+			}
+			if gpu.Temperature > 0 {
+				sb.WriteString(fmt.Sprintf("  Temperature: %d°C\n", gpu.Temperature))
+			}
+			if gpu.Utilization > 0 {
+				sb.WriteString(fmt.Sprintf("  GPU Utilization: %d%%\n", gpu.Utilization))
+			}
+			if gpu.MemoryUtilization > 0 {
+				sb.WriteString(fmt.Sprintf("  Memory Utilization: %d%%\n", gpu.MemoryUtilization))
+			}
+			if gpu.PowerDraw > 0 {
+				sb.WriteString(fmt.Sprintf("  Power Draw: %.1f W", gpu.PowerDraw))
+				if gpu.PowerLimit > 0 {
+					sb.WriteString(fmt.Sprintf(" / %.1f W", gpu.PowerLimit))
+				}
+				sb.WriteString("\n")
+			}
+			if gpu.ClockSpeed > 0 {
+				sb.WriteString(fmt.Sprintf("  Clock Speed: %d MHz\n", gpu.ClockSpeed))
+			}
+			if gpu.FanSpeed > 0 {
+				sb.WriteString(fmt.Sprintf("  Fan Speed: %d%%\n", gpu.FanSpeed))
+			}
+			if gpu.PCIBus != "" {
+				sb.WriteString(fmt.Sprintf("  PCI Bus: %s\n", gpu.PCIBus))
+			}
+		}
+		sb.WriteString("\n")
+	}
+
 	return sb.String()
 }
 
