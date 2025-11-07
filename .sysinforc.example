@@ -28,7 +28,10 @@ modules:
 
 # SMART monitoring configuration
 smart:
-  # Enable alerts for SMART issues
+  # Automatically analyze SMART data when --smart flag is used
+  enable_analysis: false
+  
+  # Enable webhook alerts for critical disk events
   enable_alerts: false
   
   # Alert thresholds
@@ -36,8 +39,11 @@ smart:
     temperature_critical: 70  # Celsius
     temperature_warning: 60   # Celsius
   
-  # Webhook URL for alerts (optional)
-  # webhook_url: https://example.com/webhook
+  # Webhook URL for alerts (JSON POST)
+  # webhook_url: https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+  
+  # Custom database path for historical tracking
+  # db_path: /var/lib/sysinfo/smart.db
 
 # Process monitoring configuration
 process:

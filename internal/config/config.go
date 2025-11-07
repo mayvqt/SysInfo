@@ -16,6 +16,13 @@ type Config struct {
 
 	// Module selection flags
 	Modules ModuleConfig
+
+	// SMART analysis options
+	SMARTAnalyze       bool   // Perform deep SMART analysis
+	SMARTHistory       bool   // Show historical trends
+	SMARTHistoryPeriod string // History period (e.g., "7d")
+	SMARTDBPath        string // Path to history database
+	SMARTAlerts        bool   // Check and send alerts
 }
 
 // ModuleConfig controls which information modules to collect

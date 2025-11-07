@@ -42,7 +42,8 @@ func Collect(cfg *config.Config) (*types.SystemInfo, error) {
 	}
 
 	// Collect disk information
-	if cfg.ShouldCollect("disk") {
+	// Note: If SMART is requested, we need to collect disk data to include SMART info
+	if cfg.ShouldCollect("disk") || cfg.ShouldCollect("smart") {
 		info.Disk, err = CollectDisk(cfg.ShouldCollect("smart"))
 		if err != nil && cfg.Verbose {
 			fmt.Fprintf(os.Stderr, "Error collecting disk info: %v\n", err)
