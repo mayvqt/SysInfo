@@ -105,19 +105,93 @@ func FormatPretty(info *types.SystemInfo) string {
 	}
 
 	// Disk information
-	if info.Disk != nil && len(info.Disk.Partitions) > 0 {
-		sb.WriteString(headerColor.Sprintf("┌─ DISKS ──────────────────────────────────────────────────────┐\n"))
-		for _, part := range info.Disk.Partitions {
-			sb.WriteString(fmt.Sprintf("│ %s\n", valueColor.Sprintf("%s (%s)", part.Device, part.MountPoint)))
-			sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Type:"), valueColor.Sprint(part.FSType)))
-			sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Total:"), valueColor.Sprint(part.TotalFormatted)))
-
-			diskBar := createProgressBar(part.UsedPercent, 28)
-			sb.WriteString(fmt.Sprintf("│   %-18s %s %s\n", labelColor.Sprint("Used:"),
-				diskBar, valueColor.Sprintf("%s (%.1f%%)", part.UsedFormatted, part.UsedPercent)))
-			sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Free:"), valueColor.Sprint(part.FreeFormatted)))
+	if info.Disk != nil {
+		sb.WriteString(headerColor.Sprintf("┌─ STORAGE ────────────────────────────────────────────────────┐\n"))
+		
+		// Physical disks information first (the actual hardware)
+		if len(info.Disk.PhysicalDisks) > 0 {
+			sb.WriteString(fmt.Sprintf("│ %s\n", labelColor.Sprint("Physical Disks:")))
 			sb.WriteString("│\n")
+			for _, disk := range info.Disk.PhysicalDisks {
+				diskType := disk.Type
+				if disk.Type == "" {
+					diskType = "Unknown"
+				}
+
+				// Show disk name and type
+				sb.WriteString(fmt.Sprintf("│ %s [%s]", valueColor.Sprint(disk.Name), valueColor.Sprint(diskType)))
+				if disk.Interface != "" {
+					sb.WriteString(fmt.Sprintf(" %s", color.New(color.FgCyan).Sprint(disk.Interface)))
+				}
+				sb.WriteString("\n")
+
+				// Show model
+				if disk.Model != "" {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Model:"), valueColor.Sprint(disk.Model)))
+				}
+
+				// Show size
+				if disk.SizeFormatted != "" && disk.SizeFormatted != "N/A" {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Size:"), valueColor.Sprint(disk.SizeFormatted)))
+				}
+
+				// Show serial number
+				if disk.SerialNumber != "" {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Serial:"), valueColor.Sprint(disk.SerialNumber)))
+				}
+
+				// Show RPM for HDDs
+				if disk.RPM > 0 {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("RPM:"), valueColor.Sprintf("%d", disk.RPM)))
+				}
+
+				// Show removable status
+				if disk.Removable {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Removable:"), color.New(color.FgYellow).Sprint("Yes")))
+				}
+
+				sb.WriteString("│\n")
+			}
 		}
+
+		// Mounted partitions (filter out loop devices and snaps for cleaner output)
+		if len(info.Disk.Partitions) > 0 {
+			// Filter significant partitions
+			var significantPartitions []types.PartitionInfo
+			for _, part := range info.Disk.Partitions {
+				// Skip loop devices (snap mounts) and very small partitions
+				if strings.HasPrefix(part.Device, "/dev/loop") {
+					continue
+				}
+				// Skip if squashfs (usually snaps)
+				if part.FSType == "squashfs" {
+					continue
+				}
+				significantPartitions = append(significantPartitions, part)
+			}
+
+			if len(significantPartitions) > 0 {
+				sb.WriteString(fmt.Sprintf("│ %s\n", labelColor.Sprint("Mounted Partitions:")))
+				sb.WriteString("│\n")
+				for _, part := range significantPartitions {
+					sb.WriteString(fmt.Sprintf("│ %s", valueColor.Sprintf("%s", part.Device)))
+					if part.MountPoint != "" {
+						sb.WriteString(fmt.Sprintf(" → %s", valueColor.Sprintf("%s", part.MountPoint)))
+					}
+					sb.WriteString("\n")
+					
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Type:"), valueColor.Sprint(part.FSType)))
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Total:"), valueColor.Sprint(part.TotalFormatted)))
+
+					diskBar := createProgressBar(part.UsedPercent, 28)
+					sb.WriteString(fmt.Sprintf("│   %-18s %s %s\n", labelColor.Sprint("Used:"),
+						diskBar, valueColor.Sprintf("%s (%.1f%%)", part.UsedFormatted, part.UsedPercent)))
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Free:"), valueColor.Sprint(part.FreeFormatted)))
+					sb.WriteString("│\n")
+				}
+			}
+		}
+
 		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n\n"))
 	}
 

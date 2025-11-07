@@ -89,6 +89,31 @@ func createTestSystemInfo() *types.SystemInfo {
 			},
 			Connections: 42,
 		},
+		GPU: &types.GPUData{
+			GPUs: []types.GPUInfo{
+				{
+					Index:             0,
+					Name:              "NVIDIA GeForce RTX 4070",
+					Vendor:            "NVIDIA",
+					Driver:            "nvidia",
+					DriverVersion:     "535.161.07",
+					MemoryTotal:       12 * 1024 * 1024 * 1024,
+					MemoryUsed:        4 * 1024 * 1024 * 1024,
+					MemoryFree:        8 * 1024 * 1024 * 1024,
+					MemoryFormatted:   "12.00 GB",
+					Temperature:       65,
+					FanSpeed:          50,
+					PowerDraw:         150.5,
+					PowerLimit:        250.0,
+					Utilization:       75,
+					MemoryUtilization: 50,
+					ClockSpeed:        1500,
+					ClockSpeedMemory:  7000,
+					PCIBus:            "01",
+					UUID:              "GPU-12345678-1234-1234-1234-123456789012",
+				},
+			},
+		},
 		Processes: &types.ProcessData{
 			TotalCount: 250,
 			Running:    5,
@@ -266,12 +291,11 @@ func TestFormatText(t *testing.T) {
 		"SYSTEM INFORMATION",
 		"CPU INFORMATION",
 		"MEMORY INFORMATION",
-		"DISK INFORMATION",
+		"STORAGE INFORMATION",
 		"SMART DISK HEALTH",
 		"NETWORK INTERFACES",
 		"PROCESS INFORMATION",
 	}
-
 	for _, section := range expectedSections {
 		if !strings.Contains(output, section) {
 			t.Errorf("Text output missing section: %s", section)
@@ -327,7 +351,7 @@ func TestFormatPretty(t *testing.T) {
 		"SYSTEM",
 		"CPU",
 		"MEMORY",
-		"DISKS",
+		"STORAGE",
 		"SMART DISK HEALTH",
 		"NETWORK",
 		"PROCESSES",
@@ -425,6 +449,193 @@ func TestFormatBytesInFormatters(t *testing.T) {
 		if result != tt.expected {
 			t.Errorf("formatBytes(%d) = %q; want %q", tt.bytes, result, tt.expected)
 		}
+	}
+}
+
+func TestGPUFormatting(t *testing.T) {
+	info := createTestSystemInfo()
+	
+	tests := []struct {
+		name     string
+		format   string
+		validate func(t *testing.T, output string)
+	}{
+		{
+			name:   "GPU in JSON format",
+			format: "json",
+			validate: func(t *testing.T, output string) {
+				var decoded types.SystemInfo
+				if err := json.Unmarshal([]byte(output), &decoded); err != nil {
+					t.Errorf("Failed to unmarshal JSON output: %v", err)
+					return
+				}
+				
+				if decoded.GPU == nil {
+					t.Error("GPU data missing in JSON output")
+					return
+				}
+				
+				if len(decoded.GPU.GPUs) != 1 {
+					t.Errorf("Expected 1 GPU, got %d", len(decoded.GPU.GPUs))
+					return
+				}
+				
+				gpu := decoded.GPU.GPUs[0]
+				if gpu.Name != "NVIDIA GeForce RTX 4070" {
+					t.Errorf("GPU name = %q; want %q", gpu.Name, "NVIDIA GeForce RTX 4070")
+				}
+				if gpu.Vendor != "NVIDIA" {
+					t.Errorf("GPU vendor = %q; want %q", gpu.Vendor, "NVIDIA")
+				}
+				if gpu.MemoryFormatted != "12.00 GB" {
+					t.Errorf("GPU memory = %q; want %q", gpu.MemoryFormatted, "12.00 GB")
+				}
+				if gpu.Temperature != 65 {
+					t.Errorf("GPU temperature = %d; want %d", gpu.Temperature, 65)
+				}
+			},
+		},
+		{
+			name:   "GPU in text format",
+			format: "text",
+			validate: func(t *testing.T, output string) {
+				expectedStrings := []string{
+					"GPU INFORMATION",
+					"NVIDIA GeForce RTX 4070",
+					"NVIDIA",
+					"12.00 GB",
+					"65°C",
+					"nvidia",
+				}
+				
+				for _, expected := range expectedStrings {
+					if !strings.Contains(output, expected) {
+						t.Errorf("Text output missing expected string: %q", expected)
+					}
+				}
+			},
+		},
+		{
+			name:   "GPU in pretty format",
+			format: "pretty",
+			validate: func(t *testing.T, output string) {
+				// Strip ANSI codes for easier testing
+				stripped := stripAnsiCodes(output)
+				
+				expectedStrings := []string{
+					"GPU",
+					"NVIDIA GeForce RTX 4070",
+					"NVIDIA",
+					"12.00 GB",
+					"65°C",
+				}
+				
+				for _, expected := range expectedStrings {
+					if !strings.Contains(stripped, expected) {
+						t.Errorf("Pretty output missing expected string: %q", expected)
+					}
+				}
+			},
+		},
+	}
+	
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &config.Config{Format: tt.format}
+			output, err := Format(info, cfg)
+			if err != nil {
+				t.Fatalf("Format() error = %v", err)
+			}
+			tt.validate(t, output)
+		})
+	}
+}
+
+func TestGPUFormattingMultipleGPUs(t *testing.T) {
+	info := createTestSystemInfo()
+	
+	// Add a second GPU
+	info.GPU.GPUs = append(info.GPU.GPUs, types.GPUInfo{
+		Index:           1,
+		Name:            "AMD Radeon RX 6800 XT",
+		Vendor:          "AMD",
+		Driver:          "amdgpu",
+		MemoryTotal:     16 * 1024 * 1024 * 1024,
+		MemoryFormatted: "16.00 GB",
+		Temperature:     72,
+	})
+	
+	// Test JSON format
+	t.Run("Multiple GPUs in JSON", func(t *testing.T) {
+		cfg := &config.Config{Format: "json"}
+		output, err := Format(info, cfg)
+		if err != nil {
+			t.Fatalf("Format() error = %v", err)
+		}
+		
+		var decoded types.SystemInfo
+		if err := json.Unmarshal([]byte(output), &decoded); err != nil {
+			t.Errorf("Failed to unmarshal JSON output: %v", err)
+			return
+		}
+		
+		if len(decoded.GPU.GPUs) != 2 {
+			t.Errorf("Expected 2 GPUs, got %d", len(decoded.GPU.GPUs))
+		}
+	})
+	
+	// Test text format
+	t.Run("Multiple GPUs in text", func(t *testing.T) {
+		cfg := &config.Config{Format: "text"}
+		output, err := Format(info, cfg)
+		if err != nil {
+			t.Fatalf("Format() error = %v", err)
+		}
+		
+		if !strings.Contains(output, "NVIDIA GeForce RTX 4070") {
+			t.Error("Missing first GPU")
+		}
+		if !strings.Contains(output, "AMD Radeon RX 6800 XT") {
+			t.Error("Missing second GPU")
+		}
+	})
+}
+
+func TestGPUFormattingNoGPU(t *testing.T) {
+	info := createTestSystemInfo()
+	info.GPU = nil
+	
+	tests := []struct {
+		name   string
+		format string
+	}{
+		{"No GPU - JSON", "json"},
+		{"No GPU - Text", "text"},
+		{"No GPU - Pretty", "pretty"},
+	}
+	
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &config.Config{Format: tt.format}
+			output, err := Format(info, cfg)
+			if err != nil {
+				t.Fatalf("Format() error = %v", err)
+			}
+			
+			// Should still produce output, just without GPU section
+			if output == "" {
+				t.Error("Output is empty")
+			}
+			
+			// For JSON, verify GPU field is null
+			if tt.format == "json" {
+				var decoded types.SystemInfo
+				if err := json.Unmarshal([]byte(output), &decoded); err != nil {
+					t.Errorf("Failed to unmarshal JSON output: %v", err)
+				}
+				// GPU will be nil, which is fine
+			}
+		})
 	}
 }
 

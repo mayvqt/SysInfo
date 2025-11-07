@@ -13,11 +13,13 @@ This document tracks planned improvements and upgrades for the SysInfo project. 
   - Windows NVIDIA enhancement with nvidia-smi for advanced metrics
   - Files: `gpu.go`, `gpu_linux.go`, `gpu_darwin.go`, `gpu_windows.go`
   
-- [ ] **Complete Physical Disk Collection**
-  - Currently a placeholder stub in `disk.go`
-  - Linux: Parse `/sys/block/*/` or use `lsblk -J`
-  - macOS: `diskutil list -plist`
-  - Windows: WMI `Win32_DiskDrive`
+- [x] **Complete Physical Disk Collection** ✅ Completed
+  - Linux: `lsblk -J` for comprehensive disk info, fallback to `/sys/block`
+  - macOS: `diskutil list/info -plist` for disk details
+  - Windows: WMI `MSFT_PhysicalDisk` (Windows 8+) and `Win32_DiskDrive` (fallback)
+  - Detects disk type (HDD, SSD, NVMe), interface (SATA, NVMe, USB), size, model, serial
+  - RPM detection for HDDs, removable media detection
+  - Files: `disk_linux.go`, `disk_darwin.go`, `disk_windows.go`
   
 - [ ] **Battery Information Module**
   - Capacity, charge level, state
@@ -195,11 +197,12 @@ This document tracks planned improvements and upgrades for the SysInfo project. 
 ### Phase 1 (Current Sprint)
 1. ✅ Create roadmap document
 2. ✅ GPU Information Module - **COMPLETED**
+3. ✅ Complete Physical Disk Collection - **COMPLETED**
 
 ### Phase 2 (Next Sprint)
-1. Complete Physical Disk Collection
-2. Configuration File Support
-3. Enhanced SMART Analysis
+1. Configuration File Support
+2. Enhanced SMART Analysis
+3. Battery Information Module
 
 ### Phase 3 (Future)
 1. Logging Framework
