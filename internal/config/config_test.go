@@ -228,4 +228,3 @@ func TestConfigFields(t *testing.T) {
 		t.Error("ShouldCollect(memory) = true; want false")
 	}
 }
-

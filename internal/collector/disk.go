@@ -72,8 +72,8 @@ func CollectDisk(includeSMART bool) (*types.DiskData, error) {
 		}
 	}
 
-	// Try to get more detailed physical disk information
-	physicalDisks := collectPhysicalDisks()
+	// Get detailed physical disk information from platform-specific implementation
+	physicalDisks := collectPhysicalDisksPlatform()
 	if len(physicalDisks) > 0 {
 		data.PhysicalDisks = physicalDisks
 	}
@@ -84,20 +84,6 @@ func CollectDisk(includeSMART bool) (*types.DiskData, error) {
 	}
 
 	return data, nil
-}
-
-// collectPhysicalDisks gathers physical disk information
-func collectPhysicalDisks() []types.PhysicalDisk {
-	// This is a placeholder - full implementation would require:
-	// - Windows: WMI queries to Win32_DiskDrive
-	// - Linux: /sys/block, lsblk, or smartctl
-	// - macOS: diskutil list, system_profiler
-	disks := make([]types.PhysicalDisk, 0)
-
-	// Platform-specific collection would go here
-	// For now, return empty to avoid errors
-
-	return disks
 }
 
 // CollectSMART gathers SMART data from drives

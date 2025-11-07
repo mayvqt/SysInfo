@@ -105,19 +105,93 @@ func FormatPretty(info *types.SystemInfo) string {
 	}
 
 	// Disk information
-	if info.Disk != nil && len(info.Disk.Partitions) > 0 {
-		sb.WriteString(headerColor.Sprintf("┌─ DISKS ──────────────────────────────────────────────────────┐\n"))
-		for _, part := range info.Disk.Partitions {
-			sb.WriteString(fmt.Sprintf("│ %s\n", valueColor.Sprintf("%s (%s)", part.Device, part.MountPoint)))
-			sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Type:"), valueColor.Sprint(part.FSType)))
-			sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Total:"), valueColor.Sprint(part.TotalFormatted)))
+	if info.Disk != nil {
+		sb.WriteString(headerColor.Sprintf("┌─ STORAGE ────────────────────────────────────────────────────┐\n"))
 
-			diskBar := createProgressBar(part.UsedPercent, 28)
-			sb.WriteString(fmt.Sprintf("│   %-18s %s %s\n", labelColor.Sprint("Used:"),
-				diskBar, valueColor.Sprintf("%s (%.1f%%)", part.UsedFormatted, part.UsedPercent)))
-			sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Free:"), valueColor.Sprint(part.FreeFormatted)))
+		// Physical disks information first (the actual hardware)
+		if len(info.Disk.PhysicalDisks) > 0 {
+			sb.WriteString(fmt.Sprintf("│ %s\n", labelColor.Sprint("Physical Disks:")))
 			sb.WriteString("│\n")
+			for _, disk := range info.Disk.PhysicalDisks {
+				diskType := disk.Type
+				if disk.Type == "" {
+					diskType = "Unknown"
+				}
+
+				// Show disk name and type
+				sb.WriteString(fmt.Sprintf("│ %s [%s]", valueColor.Sprint(disk.Name), valueColor.Sprint(diskType)))
+				if disk.Interface != "" {
+					sb.WriteString(fmt.Sprintf(" %s", color.New(color.FgCyan).Sprint(disk.Interface)))
+				}
+				sb.WriteString("\n")
+
+				// Show model
+				if disk.Model != "" {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Model:"), valueColor.Sprint(disk.Model)))
+				}
+
+				// Show size
+				if disk.SizeFormatted != "" && disk.SizeFormatted != "N/A" {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Size:"), valueColor.Sprint(disk.SizeFormatted)))
+				}
+
+				// Show serial number
+				if disk.SerialNumber != "" {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Serial:"), valueColor.Sprint(disk.SerialNumber)))
+				}
+
+				// Show RPM for HDDs
+				if disk.RPM > 0 {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("RPM:"), valueColor.Sprintf("%d", disk.RPM)))
+				}
+
+				// Show removable status
+				if disk.Removable {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Removable:"), color.New(color.FgYellow).Sprint("Yes")))
+				}
+
+				sb.WriteString("│\n")
+			}
 		}
+
+		// Mounted partitions (filter out loop devices and snaps for cleaner output)
+		if len(info.Disk.Partitions) > 0 {
+			// Filter significant partitions
+			var significantPartitions []types.PartitionInfo
+			for _, part := range info.Disk.Partitions {
+				// Skip loop devices (snap mounts) and very small partitions
+				if strings.HasPrefix(part.Device, "/dev/loop") {
+					continue
+				}
+				// Skip if squashfs (usually snaps)
+				if part.FSType == "squashfs" {
+					continue
+				}
+				significantPartitions = append(significantPartitions, part)
+			}
+
+			if len(significantPartitions) > 0 {
+				sb.WriteString(fmt.Sprintf("│ %s\n", labelColor.Sprint("Mounted Partitions:")))
+				sb.WriteString("│\n")
+				for _, part := range significantPartitions {
+					sb.WriteString(fmt.Sprintf("│ %s", valueColor.Sprintf("%s", part.Device)))
+					if part.MountPoint != "" {
+						sb.WriteString(fmt.Sprintf(" → %s", valueColor.Sprintf("%s", part.MountPoint)))
+					}
+					sb.WriteString("\n")
+
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Type:"), valueColor.Sprint(part.FSType)))
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Total:"), valueColor.Sprint(part.TotalFormatted)))
+
+					diskBar := createProgressBar(part.UsedPercent, 28)
+					sb.WriteString(fmt.Sprintf("│   %-18s %s %s\n", labelColor.Sprint("Used:"),
+						diskBar, valueColor.Sprintf("%s (%.1f%%)", part.UsedFormatted, part.UsedPercent)))
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Free:"), valueColor.Sprint(part.FreeFormatted)))
+					sb.WriteString("│\n")
+				}
+			}
+		}
+
 		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n\n"))
 	}
 
@@ -257,11 +331,11 @@ func FormatPretty(info *types.SystemInfo) string {
 		sb.WriteString(headerColor.Sprintf("┌─ GPU ────────────────────────────────────────────────────────┐\n"))
 		for _, gpu := range info.GPU.GPUs {
 			sb.WriteString(fmt.Sprintf("│ %s\n", valueColor.Sprintf("GPU %d: %s", gpu.Index, gpu.Name)))
-			
+
 			if gpu.Vendor != "" {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Vendor:"), valueColor.Sprint(gpu.Vendor)))
 			}
-			
+
 			if gpu.Driver != "" {
 				driverStr := gpu.Driver
 				if gpu.DriverVersion != "" {
@@ -269,7 +343,7 @@ func FormatPretty(info *types.SystemInfo) string {
 				}
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Driver:"), valueColor.Sprint(driverStr)))
 			}
-			
+
 			if gpu.MemoryTotal > 0 {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Memory:"), valueColor.Sprint(gpu.MemoryFormatted)))
 				if gpu.MemoryUsed > 0 {
@@ -279,7 +353,7 @@ func FormatPretty(info *types.SystemInfo) string {
 						memBar, valueColor.Sprintf("%s (%.1f%%)", formatBytes(gpu.MemoryUsed), usedPercent)))
 				}
 			}
-			
+
 			if gpu.Temperature > 0 {
 				tempColor := valueColor
 				if gpu.Temperature > 70 {
@@ -289,19 +363,19 @@ func FormatPretty(info *types.SystemInfo) string {
 				}
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Temperature:"), tempColor.Sprintf("%d°C", gpu.Temperature)))
 			}
-			
+
 			if gpu.Utilization > 0 {
 				utilBar := createProgressBar(float64(gpu.Utilization), 28)
 				sb.WriteString(fmt.Sprintf("│   %-18s %s %s\n", labelColor.Sprint("GPU Utilization:"),
 					utilBar, valueColor.Sprintf("%d%%", gpu.Utilization)))
 			}
-			
+
 			if gpu.MemoryUtilization > 0 {
 				memUtilBar := createProgressBar(float64(gpu.MemoryUtilization), 28)
 				sb.WriteString(fmt.Sprintf("│   %-18s %s %s\n", labelColor.Sprint("Mem Utilization:"),
 					memUtilBar, valueColor.Sprintf("%d%%", gpu.MemoryUtilization)))
 			}
-			
+
 			if gpu.PowerDraw > 0 {
 				powerStr := fmt.Sprintf("%.1f W", gpu.PowerDraw)
 				if gpu.PowerLimit > 0 {
@@ -309,23 +383,23 @@ func FormatPretty(info *types.SystemInfo) string {
 				}
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Power Draw:"), valueColor.Sprint(powerStr)))
 			}
-			
+
 			if gpu.ClockSpeed > 0 {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Clock Speed:"), valueColor.Sprintf("%d MHz", gpu.ClockSpeed)))
 			}
-			
+
 			if gpu.ClockSpeedMemory > 0 {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Memory Clock:"), valueColor.Sprintf("%d MHz", gpu.ClockSpeedMemory)))
 			}
-			
+
 			if gpu.FanSpeed > 0 {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Fan Speed:"), valueColor.Sprintf("%d%%", gpu.FanSpeed)))
 			}
-			
+
 			if gpu.PCIBus != "" {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("PCI Bus:"), valueColor.Sprint(gpu.PCIBus)))
 			}
-			
+
 			sb.WriteString("│\n")
 		}
 		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n"))

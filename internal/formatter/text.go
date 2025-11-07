@@ -59,16 +59,67 @@ func FormatText(info *types.SystemInfo) string {
 		sb.WriteString("\n")
 	}
 
-	// Disk information
-	if info.Disk != nil && len(info.Disk.Partitions) > 0 {
-		sb.WriteString("DISK INFORMATION\n")
-		for _, part := range info.Disk.Partitions {
-			sb.WriteString(fmt.Sprintf("Device: %s\n", part.Device))
-			sb.WriteString(fmt.Sprintf("  Mount Point: %s\n", part.MountPoint))
-			sb.WriteString(fmt.Sprintf("  Type: %s\n", part.FSType))
-			sb.WriteString(fmt.Sprintf("  Total: %s\n", part.TotalFormatted))
-			sb.WriteString(fmt.Sprintf("  Used: %s (%.2f%%)\n", part.UsedFormatted, part.UsedPercent))
-			sb.WriteString(fmt.Sprintf("  Free: %s\n", part.FreeFormatted))
+	// Storage information
+	if info.Disk != nil {
+		sb.WriteString("STORAGE INFORMATION\n")
+
+		// Physical disks
+		if len(info.Disk.PhysicalDisks) > 0 {
+			sb.WriteString("Physical Disks:\n")
+			for _, disk := range info.Disk.PhysicalDisks {
+				diskType := disk.Type
+				if diskType == "" {
+					diskType = "Unknown"
+				}
+				sb.WriteString(fmt.Sprintf("  %s [%s", disk.Name, diskType))
+				if disk.Interface != "" {
+					sb.WriteString(fmt.Sprintf(" - %s", disk.Interface))
+				}
+				sb.WriteString("]\n")
+
+				if disk.Model != "" {
+					sb.WriteString(fmt.Sprintf("    Model: %s\n", disk.Model))
+				}
+				if disk.SizeFormatted != "" && disk.SizeFormatted != "N/A" {
+					sb.WriteString(fmt.Sprintf("    Size: %s\n", disk.SizeFormatted))
+				}
+				if disk.SerialNumber != "" {
+					sb.WriteString(fmt.Sprintf("    Serial: %s\n", disk.SerialNumber))
+				}
+				if disk.RPM > 0 {
+					sb.WriteString(fmt.Sprintf("    RPM: %d\n", disk.RPM))
+				}
+				if disk.Removable {
+					sb.WriteString("    Removable: Yes\n")
+				}
+			}
+			sb.WriteString("\n")
+		}
+
+		// Mounted partitions (filter loop devices)
+		if len(info.Disk.Partitions) > 0 {
+			var significantPartitions []types.PartitionInfo
+			for _, part := range info.Disk.Partitions {
+				if strings.HasPrefix(part.Device, "/dev/loop") || part.FSType == "squashfs" {
+					continue
+				}
+				significantPartitions = append(significantPartitions, part)
+			}
+
+			if len(significantPartitions) > 0 {
+				sb.WriteString("Mounted Partitions:\n")
+				for _, part := range significantPartitions {
+					sb.WriteString(fmt.Sprintf("  %s", part.Device))
+					if part.MountPoint != "" {
+						sb.WriteString(fmt.Sprintf(" → %s", part.MountPoint))
+					}
+					sb.WriteString("\n")
+					sb.WriteString(fmt.Sprintf("    Type: %s\n", part.FSType))
+					sb.WriteString(fmt.Sprintf("    Total: %s\n", part.TotalFormatted))
+					sb.WriteString(fmt.Sprintf("    Used: %s (%.2f%%)\n", part.UsedFormatted, part.UsedPercent))
+					sb.WriteString(fmt.Sprintf("    Free: %s\n", part.FreeFormatted))
+				}
+			}
 		}
 		sb.WriteString("\n")
 	}
