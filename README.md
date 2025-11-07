@@ -6,8 +6,9 @@ SysInfo is a comprehensive, cross-platform command-line tool and Go library for 
 
 ## Highlights
 
-- **Comprehensive Data Collection**: CPU, memory modules, disk (with 70+ SMART attributes), network, processes, GPU, and system metadata
+- **Comprehensive Data Collection**: CPU, memory modules, disk (with 70+ SMART attributes), network, processes, GPU, battery, and system metadata
 - **GPU Monitoring**: Detailed GPU information including temperature, utilization, memory usage, and power draw (NVIDIA, AMD, Intel)
+- **Battery Monitoring**: Comprehensive battery information including charge level, health, time remaining, cycle count, temperature, and power consumption (laptops and UPS devices)
 - **SMART Health Monitoring**: Professional-grade disk health assessment with failure prediction and SSD wear tracking
 - **Multiple Output Formats**: `pretty`, `text`, and `json`
 - **Full System Dump**: Single command to capture everything to JSON for analysis
@@ -42,6 +43,9 @@ Examples
 # CPU + memory only, JSON format
 .\\sysinfo.exe --cpu --memory --format json
 
+# Battery information for laptops
+.\\sysinfo.exe --battery
+
 # Comprehensive SMART data with health assessment
 .\\sysinfo.exe --smart --format json
 
@@ -64,14 +68,62 @@ Examples
 - `--process`: process summaries (top by CPU and memory)
 - `--smart`: comprehensive SMART disk data with health assessment (requires elevation)
 - `--gpu`: GPU information including temperature, utilization, memory, and power draw
+- `--battery`: battery information including charge level, health, time remaining, and cycle count
 
 ### Output Options
 - `--format`, `-f`: output format: `pretty|text|json` (default: pretty)
 - `--output`, `-o`: write output to file instead of stdout
 - `--verbose`, `-v`: enable verbose logging
 - `--full-dump`: collect ALL system info and save to `sysinfo_dump.json` (includes everything)
+- `--config`: specify custom config file path (default: auto-detect)
 
 Run `--help` for the complete flag list and examples.
+
+## Configuration File
+
+SysInfo supports configuration files for persistent settings. Create a configuration file in one of these locations:
+- `./.sysinforc` (current directory)
+- `./.sysinfo.yaml` (current directory)
+- `~/.config/sysinfo/config.yaml` (user config directory)
+- `~/.sysinforc` (home directory)
+
+**Example Configuration** (see `.sysinforc.example`):
+```yaml
+# Default output format: json, text, or pretty
+format: pretty
+
+# Enable verbose output
+verbose: false
+
+# Default modules to collect (when no flags are specified)
+modules:
+  system: true
+  cpu: true
+  memory: true
+  disk: true
+  network: true
+  process: true
+  smart: false  # Requires root/admin
+  gpu: true
+  battery: true
+
+# SMART monitoring configuration
+smart:
+  enable_alerts: false
+  alert_thresholds:
+    temperature_critical: 70  # Celsius
+    temperature_warning: 60   # Celsius
+
+# Process monitoring
+process:
+  top_count: 10  # Number of top processes to show
+
+# Display preferences
+display:
+  use_ascii: false  # Force ASCII instead of Unicode
+```
+
+**Note**: Command-line flags take precedence over configuration file settings.
 
 ## SMART Data Features
 

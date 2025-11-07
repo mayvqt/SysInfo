@@ -21,15 +21,11 @@ This document tracks planned improvements and upgrades for the SysInfo project. 
   - RPM detection for HDDs, removable media detection
   - Files: `disk_linux.go`, `disk_darwin.go`, `disk_windows.go`
   
-- [x] **Battery Information Module** ✅ Completed
+- [ ] **Battery Information Module**
   - Capacity, charge level, state
   - Time remaining, cycle count
   - Health percentage
   - Laptop and UPS support
-  - Platform implementations: Linux (`/sys/class/power_supply`), macOS (`pmset`, `ioreg`), Windows (WMI)
-  - Add `--battery` flag
-  - Comprehensive battery data including temperature, voltage, power draw
-  - Files: `battery_linux.go`, `battery_darwin.go`, `battery_windows.go`, `battery_test.go`
 
 - [ ] **Temperature Sensors Module**
   - CPU package temperature
@@ -208,7 +204,7 @@ This document tracks planned improvements and upgrades for the SysInfo project. 
 ### Phase 2 (Next Sprint)
 1. ✅ Configuration File Support - **COMPLETED**
 2. Enhanced SMART Analysis
-3. ✅ Battery Information Module - **COMPLETED**
+3. Battery Information Module
 
 ### Phase 3 (Future)
 1. Logging Framework

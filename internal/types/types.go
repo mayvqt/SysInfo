@@ -12,6 +12,7 @@ type SystemInfo struct {
 	Network   *NetworkData `json:"network,omitempty"`
 	Processes *ProcessData `json:"processes,omitempty"`
 	GPU       *GPUData     `json:"gpu,omitempty"`
+	Battery   *BatteryData `json:"battery,omitempty"`
 }
 
 // SystemData contains general system information
@@ -263,4 +264,86 @@ type ProcessInfo struct {
 	MemoryMB      uint64  `json:"memory_mb"`
 	Status        string  `json:"status"`
 	CreateTime    int64   `json:"create_time,omitempty"`
+}
+
+// BatteryData contains battery information for laptops and UPS devices
+type BatteryData struct {
+	Present       bool          `json:"present"`                      // Whether a battery is present
+	Batteries     []BatteryInfo `json:"batteries"`                    // Multiple batteries (some devices have 2+)
+	UPSDevices    []UPSInfo     `json:"ups_devices,omitempty"`        // UPS devices
+	TotalCapacity uint64        `json:"total_capacity_mwh,omitempty"` // Combined capacity of all batteries
+	OnBattery     bool          `json:"on_battery"`                   // Whether system is running on battery
+}
+
+// BatteryInfo contains information about a single battery
+type BatteryInfo struct {
+	Name            string  `json:"name"`                             // Battery identifier (BAT0, BAT1, etc.)
+	Vendor          string  `json:"vendor,omitempty"`                 // Battery manufacturer
+	Model           string  `json:"model,omitempty"`                  // Battery model number
+	SerialNumber    string  `json:"serial_number,omitempty"`          // Battery serial number
+	Technology      string  `json:"technology,omitempty"`             // Li-ion, Li-poly, NiMH, etc.
+	State           string  `json:"state"`                            // Charging, Discharging, Full, Idle, Not charging
+	ChargeLevel     float64 `json:"charge_level_percent"`             // Current charge level (0-100)
+	Capacity        uint64  `json:"capacity_mwh"`                     // Design capacity in milliwatt-hours
+	CapacityFull    uint64  `json:"capacity_full_mwh"`                // Full charge capacity (current max)
+	CapacityNow     uint64  `json:"capacity_now_mwh"`                 // Current charge in milliwatt-hours
+	EnergyFull      uint64  `json:"energy_full_mwh,omitempty"`        // Full energy capacity
+	EnergyNow       uint64  `json:"energy_now_mwh,omitempty"`         // Current energy level
+	PowerNow        uint64  `json:"power_now_mw,omitempty"`           // Current power draw/charge rate
+	Voltage         float64 `json:"voltage_v,omitempty"`              // Current voltage in volts
+	VoltageMin      float64 `json:"voltage_min_v,omitempty"`          // Minimum design voltage
+	Current         int64   `json:"current_ma,omitempty"`             // Current in milliamps (negative = discharging)
+	Temperature     float64 `json:"temperature_celsius,omitempty"`    // Battery temperature
+	CycleCount      uint64  `json:"cycle_count,omitempty"`            // Number of charge cycles
+	Health          float64 `json:"health_percent,omitempty"`         // Battery health (capacity_full/capacity * 100)
+	TimeToEmpty     int64   `json:"time_to_empty_minutes,omitempty"`  // Estimated time until empty (-1 if N/A)
+	TimeToFull      int64   `json:"time_to_full_minutes,omitempty"`   // Estimated time until full (-1 if N/A)
+	TimeRemaining   int64   `json:"time_remaining_minutes,omitempty"` // Estimated time remaining
+	IsCharging      bool    `json:"is_charging"`                      // Currently charging
+	IsDischarging   bool    `json:"is_discharging"`                   // Currently discharging
+	ManufactureDate string  `json:"manufacture_date,omitempty"`       // Manufacturing date
+}
+
+// UPSInfo contains information about an Uninterruptible Power Supply
+type UPSInfo struct {
+	Name           string  `json:"name"`                          // UPS device name
+	Model          string  `json:"model,omitempty"`               // UPS model
+	Manufacturer   string  `json:"manufacturer,omitempty"`        // UPS manufacturer
+	SerialNumber   string  `json:"serial_number,omitempty"`       // UPS serial number
+	Status         string  `json:"status"`                        // Online, On Battery, Low Battery, etc.
+	ChargeLevel    float64 `json:"charge_level_percent"`          // Battery charge level
+	Load           float64 `json:"load_percent,omitempty"`        // Current load percentage
+	Runtime        int64   `json:"runtime_minutes,omitempty"`     // Estimated runtime in minutes
+	Voltage        float64 `json:"voltage_v,omitempty"`           // Input/output voltage
+	Power          uint64  `json:"power_w,omitempty"`             // Power rating in watts
+	BatteryVoltage float64 `json:"battery_voltage_v,omitempty"`   // Battery voltage
+	Temperature    float64 `json:"temperature_celsius,omitempty"` // UPS temperature
+}
+
+// GPUData contains GPU information
+type GPUData struct {
+	GPUs []GPUInfo `json:"gpus"`
+}
+
+// GPUInfo contains information about a single GPU
+type GPUInfo struct {
+	Index             int     `json:"index"`
+	Name              string  `json:"name"`
+	Vendor            string  `json:"vendor"`
+	Driver            string  `json:"driver,omitempty"`
+	DriverVersion     string  `json:"driver_version,omitempty"`
+	MemoryTotal       uint64  `json:"memory_total_bytes,omitempty"`
+	MemoryUsed        uint64  `json:"memory_used_bytes,omitempty"`
+	MemoryFree        uint64  `json:"memory_free_bytes,omitempty"`
+	MemoryFormatted   string  `json:"memory_total_formatted,omitempty"`
+	Temperature       int     `json:"temperature_celsius,omitempty"`
+	FanSpeed          int     `json:"fan_speed_percent,omitempty"`
+	PowerDraw         float64 `json:"power_draw_watts,omitempty"`
+	PowerLimit        float64 `json:"power_limit_watts,omitempty"`
+	Utilization       int     `json:"utilization_percent,omitempty"`
+	MemoryUtilization int     `json:"memory_utilization_percent,omitempty"`
+	ClockSpeed        int     `json:"clock_speed_mhz,omitempty"`
+	ClockSpeedMemory  int     `json:"clock_speed_memory_mhz,omitempty"`
+	PCIBus            string  `json:"pci_bus,omitempty"`
+	UUID              string  `json:"uuid,omitempty"`
 }

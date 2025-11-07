@@ -11,6 +11,7 @@ import (
 )
 
 var cfg *config.Config
+var configFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "sysinfo",
@@ -23,6 +24,9 @@ CPU, memory, disk, network, processes, and SMART data.`,
 
 func init() {
 	cfg = config.NewConfig()
+
+	// Configuration file
+	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "Config file (default: searches for .sysinforc, ~/.config/sysinfo/config.yaml)")
 
 	// Output options
 	rootCmd.Flags().StringVarP(&cfg.Format, "format", "f", "pretty", "Output format: json, text, pretty")
@@ -42,6 +46,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&cfg.Modules.Process, "process", false, "Collect process information")
 	rootCmd.Flags().BoolVar(&cfg.Modules.SMART, "smart", false, "Collect SMART disk data (may require elevated privileges)")
 	rootCmd.Flags().BoolVar(&cfg.Modules.GPU, "gpu", false, "Collect GPU information")
+	rootCmd.Flags().BoolVar(&cfg.Modules.Battery, "battery", false, "Collect battery information")
 }
 
 func Execute() error {
@@ -49,6 +54,15 @@ func Execute() error {
 }
 
 func runSysInfo(cmd *cobra.Command, args []string) error {
+	// Load configuration file if it exists
+	fileConfig, err := config.LoadConfigFile(configFile)
+	if err != nil {
+		return fmt.Errorf("failed to load config file: %w", err)
+	}
+
+	// Merge file config with CLI flags (CLI takes precedence)
+	cfg.MergeWithFileConfig(fileConfig)
+
 	// Handle full dump mode
 	if cfg.FullDumpToFile {
 		return runFullDump()
@@ -56,7 +70,7 @@ func runSysInfo(cmd *cobra.Command, args []string) error {
 
 	// If any specific module is selected, disable --all
 	if cfg.Modules.System || cfg.Modules.CPU || cfg.Modules.Memory ||
-		cfg.Modules.Disk || cfg.Modules.Network || cfg.Modules.Process || cfg.Modules.SMART || cfg.Modules.GPU {
+		cfg.Modules.Disk || cfg.Modules.Network || cfg.Modules.Process || cfg.Modules.SMART || cfg.Modules.GPU || cfg.Modules.Battery {
 		cfg.Modules.All = false
 	}
 

@@ -236,6 +236,91 @@ func FormatText(info *types.SystemInfo) string {
 		sb.WriteString("\n")
 	}
 
+	// Battery information
+	if info.Battery != nil && info.Battery.Present && len(info.Battery.Batteries) > 0 {
+		sb.WriteString("BATTERY INFORMATION\n")
+
+		powerSource := "AC Power"
+		if info.Battery.OnBattery {
+			powerSource = "Battery Power"
+		}
+		sb.WriteString(fmt.Sprintf("Power Source: %s\n", powerSource))
+
+		if len(info.Battery.Batteries) > 1 {
+			sb.WriteString(fmt.Sprintf("Total Capacity: %s\n", formatMilliwattHours(info.Battery.TotalCapacity)))
+		}
+
+		for _, battery := range info.Battery.Batteries {
+			batteryLabel := battery.Name
+			if battery.Model != "" {
+				batteryLabel = fmt.Sprintf("%s (%s)", battery.Name, battery.Model)
+			}
+			sb.WriteString(fmt.Sprintf("\n%s\n", batteryLabel))
+
+			sb.WriteString(fmt.Sprintf("  State: %s\n", battery.State))
+
+			if battery.ChargeLevel > 0 {
+				sb.WriteString(fmt.Sprintf("  Charge Level: %.1f%%\n", battery.ChargeLevel))
+			}
+
+			if battery.Health > 0 {
+				sb.WriteString(fmt.Sprintf("  Battery Health: %.1f%%\n", battery.Health))
+			}
+
+			if battery.TimeRemaining >= 0 {
+				timeStr := formatTime(battery.TimeRemaining)
+				if battery.IsCharging {
+					sb.WriteString(fmt.Sprintf("  Time to Full: %s\n", timeStr))
+				} else if battery.IsDischarging {
+					sb.WriteString(fmt.Sprintf("  Time Remaining: %s\n", timeStr))
+				}
+			}
+
+			if battery.CapacityFull > 0 {
+				sb.WriteString(fmt.Sprintf("  Current Capacity: %s / %s\n",
+					formatMilliwattHours(battery.CapacityNow),
+					formatMilliwattHours(battery.CapacityFull)))
+			}
+
+			if battery.Capacity > 0 && battery.Capacity != battery.CapacityFull {
+				sb.WriteString(fmt.Sprintf("  Design Capacity: %s\n", formatMilliwattHours(battery.Capacity)))
+			}
+
+			if battery.Voltage > 0 {
+				sb.WriteString(fmt.Sprintf("  Voltage: %.2f V\n", battery.Voltage))
+			}
+
+			if battery.PowerNow > 0 {
+				powerLabel := "Power Draw"
+				if battery.IsCharging {
+					powerLabel = "Charge Rate"
+				}
+				sb.WriteString(fmt.Sprintf("  %s: %.2f W\n", powerLabel, float64(battery.PowerNow)/1000.0))
+			}
+
+			if battery.Temperature > 0 {
+				sb.WriteString(fmt.Sprintf("  Temperature: %.1f°C\n", battery.Temperature))
+			}
+
+			if battery.CycleCount > 0 {
+				sb.WriteString(fmt.Sprintf("  Cycle Count: %d\n", battery.CycleCount))
+			}
+
+			if battery.Vendor != "" {
+				sb.WriteString(fmt.Sprintf("  Manufacturer: %s\n", battery.Vendor))
+			}
+
+			if battery.Technology != "" {
+				sb.WriteString(fmt.Sprintf("  Technology: %s\n", battery.Technology))
+			}
+
+			if battery.SerialNumber != "" {
+				sb.WriteString(fmt.Sprintf("  Serial Number: %s\n", battery.SerialNumber))
+			}
+		}
+		sb.WriteString("\n")
+	}
+
 	// GPU information
 	if info.GPU != nil && len(info.GPU.GPUs) > 0 {
 		sb.WriteString("GPU INFORMATION\n")

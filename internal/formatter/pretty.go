@@ -325,6 +325,151 @@ func FormatPretty(info *types.SystemInfo) string {
 		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n"))
 	}
 
+	// Battery information
+	if info.Battery != nil && info.Battery.Present && len(info.Battery.Batteries) > 0 {
+		sb.WriteString("\n")
+		sb.WriteString(headerColor.Sprintf("┌─ BATTERY ────────────────────────────────────────────────────┐\n"))
+
+		// Power source status
+		powerSource := "AC Power"
+		if info.Battery.OnBattery {
+			powerSource = color.New(color.FgYellow).Sprint("Battery Power")
+		}
+		sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Power Source:"), powerSource))
+
+		if len(info.Battery.Batteries) > 1 {
+			sb.WriteString(fmt.Sprintf("│ %-20s %s\n", labelColor.Sprint("Total Capacity:"),
+				valueColor.Sprint(formatMilliwattHours(info.Battery.TotalCapacity))))
+		}
+		sb.WriteString("│\n")
+
+		for i, battery := range info.Battery.Batteries {
+			if i > 0 {
+				sb.WriteString("│\n")
+			}
+
+			batteryLabel := battery.Name
+			if battery.Model != "" {
+				batteryLabel = fmt.Sprintf("%s (%s)", battery.Name, battery.Model)
+			}
+			sb.WriteString(fmt.Sprintf("│ %s\n", valueColor.Sprint(batteryLabel)))
+
+			// State with color
+			stateColor := valueColor
+			switch battery.State {
+			case "Charging":
+				stateColor = color.New(color.FgGreen)
+			case "Discharging":
+				stateColor = color.New(color.FgYellow)
+			case "Full":
+				stateColor = color.New(color.FgCyan)
+			case "Critical", "Low":
+				stateColor = color.New(color.FgRed)
+			}
+			sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("State:"), stateColor.Sprint(battery.State)))
+
+			// Charge level with progress bar
+			if battery.ChargeLevel > 0 {
+				chargeBar := createProgressBar(battery.ChargeLevel, 28)
+				chargeColor := valueColor
+				if battery.ChargeLevel < 20 {
+					chargeColor = color.New(color.FgRed)
+				} else if battery.ChargeLevel < 50 {
+					chargeColor = color.New(color.FgYellow)
+				}
+				sb.WriteString(fmt.Sprintf("│   %-18s %s %s\n", labelColor.Sprint("Charge Level:"),
+					chargeBar, chargeColor.Sprintf("%.1f%%", battery.ChargeLevel)))
+			}
+
+			// Health with progress bar
+			if battery.Health > 0 {
+				healthBar := createProgressBar(battery.Health, 28)
+				healthColor := valueColor
+				if battery.Health < 60 {
+					healthColor = color.New(color.FgRed)
+				} else if battery.Health < 80 {
+					healthColor = color.New(color.FgYellow)
+				}
+				sb.WriteString(fmt.Sprintf("│   %-18s %s %s\n", labelColor.Sprint("Battery Health:"),
+					healthBar, healthColor.Sprintf("%.1f%%", battery.Health)))
+			}
+
+			// Time remaining
+			if battery.TimeRemaining >= 0 {
+				timeStr := formatTime(battery.TimeRemaining)
+				if battery.IsCharging {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Time to Full:"), valueColor.Sprint(timeStr)))
+				} else if battery.IsDischarging {
+					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Time Remaining:"), valueColor.Sprint(timeStr)))
+				}
+			}
+
+			// Capacity information
+			if battery.CapacityFull > 0 {
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Current Capacity:"),
+					valueColor.Sprintf("%s / %s",
+						formatMilliwattHours(battery.CapacityNow),
+						formatMilliwattHours(battery.CapacityFull))))
+			}
+
+			if battery.Capacity > 0 && battery.Capacity != battery.CapacityFull {
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Design Capacity:"),
+					valueColor.Sprint(formatMilliwattHours(battery.Capacity))))
+			}
+
+			// Voltage and power
+			if battery.Voltage > 0 {
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Voltage:"),
+					valueColor.Sprintf("%.2f V", battery.Voltage)))
+			}
+
+			if battery.PowerNow > 0 {
+				powerLabel := "Power Draw:"
+				if battery.IsCharging {
+					powerLabel = "Charge Rate:"
+				}
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint(powerLabel),
+					valueColor.Sprintf("%.2f W", float64(battery.PowerNow)/1000.0)))
+			}
+
+			// Temperature
+			if battery.Temperature > 0 {
+				tempColor := valueColor
+				if battery.Temperature > 45 {
+					tempColor = color.New(color.FgRed)
+				} else if battery.Temperature > 40 {
+					tempColor = color.New(color.FgYellow)
+				}
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Temperature:"),
+					tempColor.Sprintf("%.1f°C", battery.Temperature)))
+			}
+
+			// Cycle count
+			if battery.CycleCount > 0 {
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Cycle Count:"),
+					valueColor.Sprintf("%d", battery.CycleCount)))
+			}
+
+			// Vendor and technology
+			if battery.Vendor != "" {
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Manufacturer:"),
+					valueColor.Sprint(battery.Vendor)))
+			}
+
+			if battery.Technology != "" {
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Technology:"),
+					valueColor.Sprint(battery.Technology)))
+			}
+
+			if battery.SerialNumber != "" {
+				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Serial Number:"),
+					valueColor.Sprint(battery.SerialNumber)))
+			}
+		}
+
+		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n"))
+	}
+
 	// GPU information
 	if info.GPU != nil && len(info.GPU.GPUs) > 0 {
 		sb.WriteString("\n")
@@ -435,6 +580,42 @@ func truncate(s string, length int) string {
 		return s
 	}
 	return s[:length-3] + "..."
+}
+
+// formatTime formats minutes into a human-readable time string
+func formatTime(minutes int64) string {
+	if minutes < 0 {
+		return "calculating..."
+	}
+	if minutes == 0 {
+		return "0 min"
+	}
+
+	hours := minutes / 60
+	mins := minutes % 60
+
+	if hours == 0 {
+		return fmt.Sprintf("%d min", mins)
+	}
+	if mins == 0 {
+		return fmt.Sprintf("%d hr", hours)
+	}
+	return fmt.Sprintf("%d hr %d min", hours, mins)
+}
+
+// formatMilliwattHours formats milliwatt-hours into a human-readable string
+func formatMilliwattHours(mwh uint64) string {
+	if mwh == 0 {
+		return "0 mWh"
+	}
+
+	// Convert to watt-hours if >= 1000 mWh
+	if mwh >= 1000 {
+		wh := float64(mwh) / 1000.0
+		return fmt.Sprintf("%.2f Wh", wh)
+	}
+
+	return fmt.Sprintf("%d mWh", mwh)
 }
 
 // (removed) createTable was unused — kept tablewriter usage available if needed in future
