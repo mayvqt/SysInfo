@@ -6,7 +6,8 @@ SysInfo is a comprehensive, cross-platform command-line tool and Go library for 
 
 ## Highlights
 
-- **Comprehensive Data Collection**: CPU, memory modules, disk (with 70+ SMART attributes), network, processes, and system metadata
+- **Comprehensive Data Collection**: CPU, memory modules, disk (with 70+ SMART attributes), network, processes, GPU, and system metadata
+- **GPU Monitoring**: Detailed GPU information including temperature, utilization, memory usage, and power draw (NVIDIA, AMD, Intel)
 - **SMART Health Monitoring**: Professional-grade disk health assessment with failure prediction and SSD wear tracking
 - **Multiple Output Formats**: `pretty`, `text`, and `json`
 - **Live Monitoring Mode**: Real-time system stats that update in place (like htop/top)
@@ -69,6 +70,7 @@ Examples
 - `--network`: interface statistics and connection counts
 - `--process`: process summaries (top by CPU and memory)
 - `--smart`: comprehensive SMART disk data with health assessment (requires elevation)
+- `--gpu`: GPU information including temperature, utilization, memory, and power draw
 
 ### Output Options
 - `--format`, `-f`: output format: `pretty|text|json` (default: pretty)
@@ -103,6 +105,31 @@ SysInfo provides professional-grade SMART monitoring with:
 - SSD wear level and life remaining
 - Temperature status (NORMAL/WARM/HIGH/CRITICAL)
 - Critical attribute monitoring (reallocated sectors, pending sectors, uncorrectable errors, etc.)
+
+## GPU Information Features
+
+SysInfo provides comprehensive GPU monitoring with cross-platform support:
+
+**Supported GPU Vendors**:
+- NVIDIA (via nvidia-smi on Linux/Windows)
+- AMD (via rocm-smi on Linux, WMI on Windows)
+- Intel (via lspci on Linux, WMI on Windows)
+- Apple Silicon (via system_profiler on macOS)
+
+**Information Collected**:
+- GPU model, vendor, and driver version
+- Memory total, used, and utilization percentage
+- Temperature monitoring
+- GPU and memory utilization
+- Power draw and power limit
+- Clock speeds (GPU and memory)
+- Fan speed percentage
+- PCI bus information
+
+**Platform Notes**:
+- **Linux**: Best support with nvidia-smi (NVIDIA) or rocm-smi (AMD), falls back to lspci for basic info
+- **macOS**: Uses system_profiler, full support for Apple Silicon and discrete GPUs
+- **Windows**: Uses WMI for all vendors, automatically enhanced with nvidia-smi for detailed NVIDIA stats (temperature, utilization, power, clocks, fan speed)
 
 ## Platform Notes
 

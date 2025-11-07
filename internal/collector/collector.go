@@ -65,5 +65,13 @@ func Collect(cfg *config.Config) (*types.SystemInfo, error) {
 		}
 	}
 
+	// Collect GPU information
+	if cfg.ShouldCollect("gpu") {
+		info.GPU, err = CollectGPU()
+		if err != nil && cfg.Verbose {
+			fmt.Fprintf(os.Stderr, "Error collecting GPU info: %v\n", err)
+		}
+	}
+
 	return info, nil
 }

@@ -11,6 +11,7 @@ type SystemInfo struct {
 	Disk      *DiskData    `json:"disk,omitempty"`
 	Network   *NetworkData `json:"network,omitempty"`
 	Processes *ProcessData `json:"processes,omitempty"`
+	GPU       *GPUData     `json:"gpu,omitempty"`
 }
 
 // SystemData contains general system information
