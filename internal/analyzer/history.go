@@ -127,11 +127,11 @@ func (h *HistoryDB) initSchema() error {
 func (h *HistoryDB) RecordAnalysis(smart *types.SMARTInfo, result *AnalysisResult) error {
 	tx, err := h.db.Begin()
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
-			// Transaction was already committed or rolled back
+			// Intentionally ignore rollback errors (transaction may be committed or already rolled back)
 		}
 	}()
 
