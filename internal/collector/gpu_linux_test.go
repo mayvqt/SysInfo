@@ -22,7 +22,7 @@ func TestParseMemoryMiB(t *testing.T) {
 		{"", 0},
 		{"MiB", 0},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
 			result := parseMemoryMiB(tc.input)
@@ -49,7 +49,7 @@ func TestParsePowerWatts(t *testing.T) {
 		{"W", 0.0},
 		{"75", 75.0},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
 			result := parsePowerWatts(tc.input)
@@ -76,7 +76,7 @@ func TestParseClockMHz(t *testing.T) {
 		{"MHz", 0},
 		{"1500", 1500},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
 			result := parseClockMHz(tc.input)
@@ -120,7 +120,7 @@ func TestExtractGPUName(t *testing.T) {
 			expected: "Unknown GPU",
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.line, func(t *testing.T) {
 			result := extractGPUName(tc.line, tc.vendor)
@@ -142,22 +142,22 @@ func TestExtractGPUName(t *testing.T) {
 func TestCollectGPUsFromLspci(t *testing.T) {
 	// This is an integration test that actually calls lspci if available
 	gpus := collectGPUsFromLspci()
-	
+
 	// We can't guarantee lspci will find GPUs, but if it does, validate them
 	if len(gpus) > 0 {
 		t.Logf("Found %d GPU(s) via lspci", len(gpus))
-		
+
 		for i, gpu := range gpus {
 			t.Logf("GPU %d: %s (%s)", i, gpu.Name, gpu.Vendor)
-			
+
 			if gpu.Name == "" {
 				t.Errorf("GPU %d has empty name", i)
 			}
-			
+
 			if gpu.Index != i {
 				t.Errorf("GPU %d has incorrect index: %d", i, gpu.Index)
 			}
-			
+
 			// PCIBus should be set when using lspci
 			if gpu.PCIBus == "" {
 				t.Logf("Warning: GPU %d missing PCI bus information", i)
@@ -171,28 +171,28 @@ func TestCollectGPUsFromLspci(t *testing.T) {
 // TestCollectNvidiaGPUs tests NVIDIA GPU collection
 func TestCollectNvidiaGPUs(t *testing.T) {
 	gpus := collectNvidiaGPUs()
-	
+
 	if len(gpus) > 0 {
 		t.Logf("Found %d NVIDIA GPU(s)", len(gpus))
-		
+
 		for i, gpu := range gpus {
 			if gpu.Vendor != "NVIDIA" {
 				t.Errorf("GPU %d vendor should be NVIDIA, got %s", i, gpu.Vendor)
 			}
-			
+
 			if gpu.Name == "" {
 				t.Errorf("GPU %d has empty name", i)
 			}
-			
+
 			// If we got detailed info, verify it
 			if gpu.MemoryTotal > 0 {
 				t.Logf("GPU %d: %s - Memory: %s", i, gpu.Name, gpu.MemoryFormatted)
-				
+
 				if gpu.MemoryFormatted == "" {
 					t.Errorf("GPU %d has memory but no formatted string", i)
 				}
 			}
-			
+
 			if gpu.Temperature > 0 {
 				if gpu.Temperature < 20 || gpu.Temperature > 100 {
 					t.Logf("Warning: GPU %d temperature seems unusual: %d°C", i, gpu.Temperature)
@@ -207,15 +207,15 @@ func TestCollectNvidiaGPUs(t *testing.T) {
 // TestCollectAMDGPUs tests AMD GPU collection
 func TestCollectAMDGPUs(t *testing.T) {
 	gpus := collectAMDGPUs()
-	
+
 	if len(gpus) > 0 {
 		t.Logf("Found %d AMD GPU(s)", len(gpus))
-		
+
 		for i, gpu := range gpus {
 			if gpu.Vendor != "AMD" {
 				t.Errorf("GPU %d vendor should be AMD, got %s", i, gpu.Vendor)
 			}
-			
+
 			t.Logf("GPU %d: %s", i, gpu.Name)
 		}
 	} else {
@@ -227,24 +227,24 @@ func TestCollectAMDGPUs(t *testing.T) {
 func TestNvidiaGPUDataValidation(t *testing.T) {
 	// This test validates that if we get NVIDIA GPU data, it's properly structured
 	gpus := collectNvidiaGPUs()
-	
+
 	for i, gpu := range gpus {
 		// All NVIDIA GPUs should have these fields set
 		if gpu.Vendor != "NVIDIA" {
 			t.Errorf("GPU %d: expected NVIDIA vendor, got %s", i, gpu.Vendor)
 		}
-		
+
 		if gpu.Driver != "nvidia" && gpu.Driver != "" {
 			t.Errorf("GPU %d: expected 'nvidia' driver or empty, got %s", i, gpu.Driver)
 		}
-		
+
 		// If UUID is set, it should match NVIDIA's format
 		if gpu.UUID != "" {
 			if len(gpu.UUID) < 10 {
 				t.Errorf("GPU %d: UUID seems too short: %s", i, gpu.UUID)
 			}
 		}
-		
+
 		// Memory consistency check
 		if gpu.MemoryTotal > 0 && gpu.MemoryUsed > 0 && gpu.MemoryFree > 0 {
 			calculatedTotal := gpu.MemoryUsed + gpu.MemoryFree
@@ -254,7 +254,7 @@ func TestNvidiaGPUDataValidation(t *testing.T) {
 				diff = -diff
 			}
 			if diff > 1024*1024 {
-				t.Logf("GPU %d: Memory values don't add up: total=%d, used=%d, free=%d", 
+				t.Logf("GPU %d: Memory values don't add up: total=%d, used=%d, free=%d",
 					i, gpu.MemoryTotal, gpu.MemoryUsed, gpu.MemoryFree)
 			}
 		}

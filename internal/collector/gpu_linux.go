@@ -44,8 +44,8 @@ type NvidiaGPU struct {
 		Graphics string `xml:"graphics_clock"`
 		Memory   string `xml:"mem_clock"`
 	} `xml:"clocks"`
-	FanSpeed       string `xml:"fan_speed"`
-	DriverVersion  string `xml:"driver_version"`
+	FanSpeed      string `xml:"fan_speed"`
+	DriverVersion string `xml:"driver_version"`
 }
 
 // collectGPUPlatform implements Linux-specific GPU data collection

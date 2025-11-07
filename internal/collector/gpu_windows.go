@@ -16,14 +16,14 @@ import (
 
 // Win32_VideoController represents Windows WMI video controller
 type Win32_VideoController struct {
-	Name              string
-	AdapterRAM        uint32
-	DriverVersion     string
-	VideoProcessor    string
-	PNPDeviceID       string
-	CurrentRefreshRate uint32
+	Name                 string
+	AdapterRAM           uint32
+	DriverVersion        string
+	VideoProcessor       string
+	PNPDeviceID          string
+	CurrentRefreshRate   uint32
 	VideoModeDescription string
-	Status            string
+	Status               string
 }
 
 // collectGPUPlatform implements Windows-specific GPU data collection
@@ -33,7 +33,7 @@ func collectGPUPlatform() []types.GPUInfo {
 	// Query WMI for video controller information
 	var videoControllers []Win32_VideoController
 	query := "SELECT Name, AdapterRAM, DriverVersion, VideoProcessor, PNPDeviceID, CurrentRefreshRate, VideoModeDescription, Status FROM Win32_VideoController"
-	
+
 	err := wmi.Query(query, &videoControllers)
 	if err != nil {
 		return gpus
@@ -49,7 +49,7 @@ func collectGPUPlatform() []types.GPUInfo {
 		// Determine vendor from name or PNP device ID
 		nameLower := strings.ToLower(controller.Name)
 		pnpLower := strings.ToLower(controller.PNPDeviceID)
-		
+
 		if strings.Contains(nameLower, "nvidia") || strings.Contains(pnpLower, "nvidia") {
 			gpuInfo.Vendor = "NVIDIA"
 			gpuInfo.Driver = "nvidia"
@@ -109,10 +109,10 @@ func enrichNvidiaGPUsWindows(gpus []types.GPUInfo) {
 	}
 
 	// Get detailed NVIDIA GPU information using CSV format
-	cmd := exec.Command("nvidia-smi", 
+	cmd := exec.Command("nvidia-smi",
 		"--query-gpu=index,name,temperature.gpu,utilization.gpu,utilization.memory,memory.total,memory.used,memory.free,power.draw,power.limit,clocks.gr,clocks.mem,fan.speed,uuid",
 		"--format=csv,noheader,nounits")
-	
+
 	output, err := cmd.Output()
 	if err != nil {
 		return
@@ -139,7 +139,7 @@ func enrichNvidiaGPUsWindows(gpus []types.GPUInfo) {
 		}
 
 		name := strings.TrimSpace(record[1])
-		
+
 		// Find matching GPU in our list
 		gpu, exists := nvidiaGPUMap[name]
 		if !exists {

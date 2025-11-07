@@ -12,26 +12,6 @@ import (
 	"github.com/yusufpapurcu/wmi"
 )
 
-// Win32_DiskDrive represents WMI disk drive data
-type Win32_DiskDrive struct {
-	DeviceID          string
-	Model             string
-	SerialNumber      string
-	Size              uint64
-	Status            string
-	InterfaceType     string
-	MediaType         string
-	Partitions        uint32
-	FirmwareRevision  string
-	BytesPerSector    uint32
-	SectorsPerTrack   uint32
-	TracksPerCylinder uint32
-	TotalCylinders    uint64
-	TotalHeads        uint32
-	TotalSectors      uint64
-	TotalTracks       uint64
-}
-
 // MSStorageDriver_ATAPISmartData represents SMART data from WMI
 type MSStorageDriver_ATAPISmartData struct {
 	VendorSpecific []uint8
@@ -57,7 +37,7 @@ type MSStorageDriver_FailurePredictThresholds struct {
 func collectSMARTPlatform() []types.SMARTInfo {
 	smartData := make([]types.SMARTInfo, 0)
 
-	var drives []Win32_DiskDrive
+	var drives []Win32DiskDrive
 	query := "SELECT * FROM Win32_DiskDrive"
 	err := wmi.Query(query, &drives)
 	if err != nil {

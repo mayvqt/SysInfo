@@ -107,7 +107,7 @@ func FormatPretty(info *types.SystemInfo) string {
 	// Disk information
 	if info.Disk != nil {
 		sb.WriteString(headerColor.Sprintf("┌─ STORAGE ────────────────────────────────────────────────────┐\n"))
-		
+
 		// Physical disks information first (the actual hardware)
 		if len(info.Disk.PhysicalDisks) > 0 {
 			sb.WriteString(fmt.Sprintf("│ %s\n", labelColor.Sprint("Physical Disks:")))
@@ -179,7 +179,7 @@ func FormatPretty(info *types.SystemInfo) string {
 						sb.WriteString(fmt.Sprintf(" → %s", valueColor.Sprintf("%s", part.MountPoint)))
 					}
 					sb.WriteString("\n")
-					
+
 					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Type:"), valueColor.Sprint(part.FSType)))
 					sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Total:"), valueColor.Sprint(part.TotalFormatted)))
 
@@ -331,11 +331,11 @@ func FormatPretty(info *types.SystemInfo) string {
 		sb.WriteString(headerColor.Sprintf("┌─ GPU ────────────────────────────────────────────────────────┐\n"))
 		for _, gpu := range info.GPU.GPUs {
 			sb.WriteString(fmt.Sprintf("│ %s\n", valueColor.Sprintf("GPU %d: %s", gpu.Index, gpu.Name)))
-			
+
 			if gpu.Vendor != "" {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Vendor:"), valueColor.Sprint(gpu.Vendor)))
 			}
-			
+
 			if gpu.Driver != "" {
 				driverStr := gpu.Driver
 				if gpu.DriverVersion != "" {
@@ -343,7 +343,7 @@ func FormatPretty(info *types.SystemInfo) string {
 				}
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Driver:"), valueColor.Sprint(driverStr)))
 			}
-			
+
 			if gpu.MemoryTotal > 0 {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Memory:"), valueColor.Sprint(gpu.MemoryFormatted)))
 				if gpu.MemoryUsed > 0 {
@@ -353,7 +353,7 @@ func FormatPretty(info *types.SystemInfo) string {
 						memBar, valueColor.Sprintf("%s (%.1f%%)", formatBytes(gpu.MemoryUsed), usedPercent)))
 				}
 			}
-			
+
 			if gpu.Temperature > 0 {
 				tempColor := valueColor
 				if gpu.Temperature > 70 {
@@ -363,19 +363,19 @@ func FormatPretty(info *types.SystemInfo) string {
 				}
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Temperature:"), tempColor.Sprintf("%d°C", gpu.Temperature)))
 			}
-			
+
 			if gpu.Utilization > 0 {
 				utilBar := createProgressBar(float64(gpu.Utilization), 28)
 				sb.WriteString(fmt.Sprintf("│   %-18s %s %s\n", labelColor.Sprint("GPU Utilization:"),
 					utilBar, valueColor.Sprintf("%d%%", gpu.Utilization)))
 			}
-			
+
 			if gpu.MemoryUtilization > 0 {
 				memUtilBar := createProgressBar(float64(gpu.MemoryUtilization), 28)
 				sb.WriteString(fmt.Sprintf("│   %-18s %s %s\n", labelColor.Sprint("Mem Utilization:"),
 					memUtilBar, valueColor.Sprintf("%d%%", gpu.MemoryUtilization)))
 			}
-			
+
 			if gpu.PowerDraw > 0 {
 				powerStr := fmt.Sprintf("%.1f W", gpu.PowerDraw)
 				if gpu.PowerLimit > 0 {
@@ -383,23 +383,23 @@ func FormatPretty(info *types.SystemInfo) string {
 				}
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Power Draw:"), valueColor.Sprint(powerStr)))
 			}
-			
+
 			if gpu.ClockSpeed > 0 {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Clock Speed:"), valueColor.Sprintf("%d MHz", gpu.ClockSpeed)))
 			}
-			
+
 			if gpu.ClockSpeedMemory > 0 {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Memory Clock:"), valueColor.Sprintf("%d MHz", gpu.ClockSpeedMemory)))
 			}
-			
+
 			if gpu.FanSpeed > 0 {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("Fan Speed:"), valueColor.Sprintf("%d%%", gpu.FanSpeed)))
 			}
-			
+
 			if gpu.PCIBus != "" {
 				sb.WriteString(fmt.Sprintf("│   %-18s %s\n", labelColor.Sprint("PCI Bus:"), valueColor.Sprint(gpu.PCIBus)))
 			}
-			
+
 			sb.WriteString("│\n")
 		}
 		sb.WriteString(headerColor.Sprintf("└──────────────────────────────────────────────────────────────┘\n"))

@@ -11,45 +11,44 @@ import (
 	"github.com/yusufpapurcu/wmi"
 )
 
-// Win32_DiskDrive represents Windows WMI disk drive information
-type Win32_DiskDrive struct {
-	Caption          string
-	DeviceID         string
-	Model            string
-	SerialNumber     string
-	Size             uint64
-	MediaType        string
-	InterfaceType    string
-	Partitions       uint32
-	BytesPerSector   uint32
-	SectorsPerTrack  uint32
-	TotalCylinders   uint64
-	TotalHeads       uint32
-	TotalSectors     uint64
-	TotalTracks      uint64
+// Win32DiskDrive represents Windows WMI disk drive information
+type Win32DiskDrive struct {
+	Caption           string
+	DeviceID          string
+	Model             string
+	SerialNumber      string
+	Size              uint64
+	MediaType         string
+	InterfaceType     string
+	Partitions        uint32
+	BytesPerSector    uint32
+	SectorsPerTrack   uint32
+	TotalCylinders    uint64
+	TotalHeads        uint32
+	TotalSectors      uint64
+	TotalTracks       uint64
 	TracksPerCylinder uint32
-	Status           string
-	Index            uint32
+	Status            string
+	Index             uint32
+	FirmwareRevision  string
 }
 
 // MSFT_PhysicalDisk represents Windows Storage Spaces physical disk information (Windows 8+)
 type MSFT_PhysicalDisk struct {
-	FriendlyName     string
-	SerialNumber     string
-	MediaType        uint16 // 0=Unspecified, 3=HDD, 4=SSD, 5=SCM
-	BusType          uint16 // 0=Unknown, 1=SCSI, 2=ATAPI, 3=ATA, 4=1394, 5=SSA, 6=FC, 7=USB, 8=RAID, 9=iSCSI, 10=SAS, 11=SATA, 12=SD, 13=MMC, 14=Virtual, 15=FileBackedVirtual, 16=Storage Spaces, 17=NVMe, 18=SCM
-	CanPool          bool
-	Size             uint64
-	AllocatedSize    uint64
+	FriendlyName      string
+	SerialNumber      string
+	MediaType         uint16 // 0=Unspecified, 3=HDD, 4=SSD, 5=SCM
+	BusType           uint16 // 0=Unknown, 1=SCSI, 2=ATAPI, 3=ATA, 4=1394, 5=SSA, 6=FC, 7=USB, 8=RAID, 9=iSCSI, 10=SAS, 11=SATA, 12=SD, 13=MMC, 14=Virtual, 15=FileBackedVirtual, 16=Storage Spaces, 17=NVMe, 18=SCM
+	CanPool           bool
+	Size              uint64
+	AllocatedSize     uint64
 	OperationalStatus uint16
-	HealthStatus     uint16
-	Usage            uint16
-	SpindleSpeed     uint32 // RPM
+	HealthStatus      uint16
+	Usage             uint16
+	SpindleSpeed      uint32 // RPM
 }
 
 func collectPhysicalDisksPlatform() []types.PhysicalDisk {
-	disks := make([]types.PhysicalDisk, 0)
-
 	// Try modern MSFT_PhysicalDisk first (Windows 8+)
 	modernDisks := collectDisksMSFT()
 	if len(modernDisks) > 0 {
@@ -64,7 +63,7 @@ func collectPhysicalDisksPlatform() []types.PhysicalDisk {
 func collectDisksMSFT() []types.PhysicalDisk {
 	var wmiDisks []MSFT_PhysicalDisk
 	query := "SELECT * FROM MSFT_PhysicalDisk"
-	
+
 	// Query root\Microsoft\Windows\Storage namespace
 	err := wmi.QueryNamespace(query, &wmiDisks, `root\Microsoft\Windows\Storage`)
 	if err != nil {
@@ -119,9 +118,9 @@ func collectDisksMSFT() []types.PhysicalDisk {
 
 // collectDisksWMI uses Win32_DiskDrive for older Windows systems
 func collectDisksWMI() []types.PhysicalDisk {
-	var wmiDisks []Win32_DiskDrive
+	var wmiDisks []Win32DiskDrive
 	query := "SELECT * FROM Win32_DiskDrive"
-	
+
 	err := wmi.Query(query, &wmiDisks)
 	if err != nil {
 		return nil

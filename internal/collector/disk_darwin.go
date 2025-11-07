@@ -3,7 +3,6 @@
 package collector
 
 import (
-	"encoding/json"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -11,38 +10,6 @@ import (
 	"github.com/mayvqt/sysinfo/internal/types"
 	"github.com/mayvqt/sysinfo/internal/utils"
 )
-
-// diskutilListOutput represents diskutil list -plist output structure
-type diskutilListOutput struct {
-	AllDisks              []string `plist:"AllDisks"`
-	AllDisksAndPartitions []struct {
-		Content    string `plist:"Content"`
-		DeviceID   string `plist:"DeviceIdentifier"`
-		Size       uint64 `plist:"Size"`
-		Partitions []struct {
-			Content  string `plist:"Content"`
-			DeviceID string `plist:"DeviceIdentifier"`
-			Size     uint64 `plist:"Size"`
-		} `plist:"Partitions,omitempty"`
-	} `plist:"AllDisksAndPartitions"`
-	VolumesFromDisks []string `plist:"VolumesFromDisks"`
-	WholeDisks       []string `plist:"WholeDisks"`
-}
-
-// diskutilInfoOutput represents diskutil info -plist output structure
-type diskutilInfoOutput struct {
-	DeviceIdentifier   string `json:"DeviceIdentifier"`
-	MediaName          string `json:"MediaName"`
-	MediaType          string `json:"MediaType"`
-	SolidState         bool   `json:"SolidState"`
-	VirtualOrPhysical  string `json:"VirtualOrPhysical"`
-	TotalSize          uint64 `json:"TotalSize"`
-	DeviceBlockSize    uint64 `json:"DeviceBlockSize"`
-	Protocol           string `json:"Protocol"` // SATA, NVMe, USB, etc.
-	Removable          bool   `json:"Removable"`
-	Internal           bool   `json:"Internal"`
-	SMARTStatus        string `json:"SMARTStatus"`
-}
 
 func collectPhysicalDisksPlatform() []types.PhysicalDisk {
 	disks := make([]types.PhysicalDisk, 0)
@@ -54,7 +21,7 @@ func collectPhysicalDisksPlatform() []types.PhysicalDisk {
 
 	// Get list of whole disks
 	cmd := exec.Command("diskutil", "list", "-plist")
-	output, err := cmd.Output()
+	_, err := cmd.Output()
 	if err != nil {
 		return disks
 	}
@@ -191,7 +158,7 @@ func extractPlistInteger(line string) uint64 {
 }
 
 // checkSSDSystemProfiler uses system_profiler to check if a disk is SSD (fallback)
-func checkSSDSystemProfiler(diskID string) bool {
+func checkSSDSystemProfiler(_ string) bool {
 	cmd := exec.Command("system_profiler", "SPSerialATADataType", "-json")
 	output, err := cmd.Output()
 	if err != nil {

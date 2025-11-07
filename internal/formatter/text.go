@@ -62,7 +62,7 @@ func FormatText(info *types.SystemInfo) string {
 	// Storage information
 	if info.Disk != nil {
 		sb.WriteString("STORAGE INFORMATION\n")
-		
+
 		// Physical disks
 		if len(info.Disk.PhysicalDisks) > 0 {
 			sb.WriteString("Physical Disks:\n")
@@ -76,7 +76,7 @@ func FormatText(info *types.SystemInfo) string {
 					sb.WriteString(fmt.Sprintf(" - %s", disk.Interface))
 				}
 				sb.WriteString("]\n")
-				
+
 				if disk.Model != "" {
 					sb.WriteString(fmt.Sprintf("    Model: %s\n", disk.Model))
 				}

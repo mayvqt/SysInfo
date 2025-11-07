@@ -9,7 +9,7 @@ import (
 // TestCollectGPU is an integration test that verifies GPU collection
 func TestCollectGPU(t *testing.T) {
 	data, err := CollectGPU()
-	
+
 	// GPU collection might fail if no GPU is present or tools are missing
 	// This is expected behavior, so we just log it
 	if err != nil {
@@ -33,15 +33,15 @@ func TestCollectGPU(t *testing.T) {
 		t.Logf("  Name: %s", gpu.Name)
 		t.Logf("  Vendor: %s", gpu.Vendor)
 		t.Logf("  Driver: %s", gpu.Driver)
-		
+
 		if gpu.Name == "" {
 			t.Errorf("GPU %d has empty name", i)
 		}
-		
+
 		if gpu.Index != i {
 			t.Errorf("GPU index mismatch: expected %d, got %d", i, gpu.Index)
 		}
-		
+
 		// Verify vendor is known
 		validVendors := map[string]bool{
 			"NVIDIA": true,
@@ -52,7 +52,7 @@ func TestCollectGPU(t *testing.T) {
 		if !validVendors[gpu.Vendor] {
 			t.Errorf("GPU %d has unknown vendor: %s", i, gpu.Vendor)
 		}
-		
+
 		// If memory is reported, it should be reasonable (not negative, formatted should exist)
 		if gpu.MemoryTotal > 0 {
 			if gpu.MemoryFormatted == "" {
@@ -63,14 +63,14 @@ func TestCollectGPU(t *testing.T) {
 				t.Errorf("GPU %d memory total seems unreasonably large: %d bytes", i, gpu.MemoryTotal)
 			}
 		}
-		
+
 		// Validate temperature is in reasonable range if reported
 		if gpu.Temperature > 0 {
 			if gpu.Temperature < 0 || gpu.Temperature > 120 {
 				t.Errorf("GPU %d temperature out of reasonable range: %d°C", i, gpu.Temperature)
 			}
 		}
-		
+
 		// Validate utilization percentages
 		if gpu.Utilization < 0 || gpu.Utilization > 100 {
 			t.Errorf("GPU %d utilization out of range: %d%%", i, gpu.Utilization)
@@ -81,7 +81,7 @@ func TestCollectGPU(t *testing.T) {
 		if gpu.FanSpeed < 0 || gpu.FanSpeed > 100 {
 			t.Errorf("GPU %d fan speed out of range: %d%%", i, gpu.FanSpeed)
 		}
-		
+
 		// Validate power values if reported
 		if gpu.PowerDraw < 0 {
 			t.Errorf("GPU %d power draw is negative: %.2f W", i, gpu.PowerDraw)
@@ -93,7 +93,7 @@ func TestCollectGPU(t *testing.T) {
 			// This is technically possible but unusual
 			t.Logf("GPU %d power draw (%.2f W) exceeds power limit (%.2f W)", i, gpu.PowerDraw, gpu.PowerLimit)
 		}
-		
+
 		// Validate clock speeds are reasonable if reported
 		if gpu.ClockSpeed < 0 || gpu.ClockSpeed > 10000 {
 			t.Errorf("GPU %d clock speed out of reasonable range: %d MHz", i, gpu.ClockSpeed)
@@ -107,12 +107,12 @@ func TestCollectGPU(t *testing.T) {
 // TestCollectGPUPlatform tests the platform-specific implementation
 func TestCollectGPUPlatform(t *testing.T) {
 	gpus := collectGPUPlatform()
-	
+
 	t.Logf("Found %d GPU(s)", len(gpus))
-	
+
 	for i, gpu := range gpus {
 		t.Logf("GPU %d: %s (%s)", i, gpu.Name, gpu.Vendor)
-		
+
 		if gpu.MemoryTotal > 0 {
 			t.Logf("  Memory: %s", gpu.MemoryFormatted)
 		}
@@ -138,27 +138,27 @@ func TestCollectGPUPlatform(t *testing.T) {
 func TestGPUDataStructure(t *testing.T) {
 	// Create a sample GPU data structure
 	gpu := types.GPUInfo{
-		Index:              0,
-		Name:               "Test GPU",
-		Vendor:             "NVIDIA",
-		Driver:             "nvidia",
-		DriverVersion:      "535.161.07",
-		MemoryTotal:        8 * 1024 * 1024 * 1024, // 8 GB
-		MemoryUsed:         4 * 1024 * 1024 * 1024, // 4 GB
-		MemoryFree:         4 * 1024 * 1024 * 1024, // 4 GB
-		MemoryFormatted:    "8.00 GB",
-		Temperature:        65,
-		FanSpeed:           50,
-		PowerDraw:          150.5,
-		PowerLimit:         250.0,
-		Utilization:        75,
-		MemoryUtilization:  50,
-		ClockSpeed:         1500,
-		ClockSpeedMemory:   7000,
-		PCIBus:             "0000:01:00.0",
-		UUID:               "GPU-12345678-1234-1234-1234-123456789012",
+		Index:             0,
+		Name:              "Test GPU",
+		Vendor:            "NVIDIA",
+		Driver:            "nvidia",
+		DriverVersion:     "535.161.07",
+		MemoryTotal:       8 * 1024 * 1024 * 1024, // 8 GB
+		MemoryUsed:        4 * 1024 * 1024 * 1024, // 4 GB
+		MemoryFree:        4 * 1024 * 1024 * 1024, // 4 GB
+		MemoryFormatted:   "8.00 GB",
+		Temperature:       65,
+		FanSpeed:          50,
+		PowerDraw:         150.5,
+		PowerLimit:        250.0,
+		Utilization:       75,
+		MemoryUtilization: 50,
+		ClockSpeed:        1500,
+		ClockSpeedMemory:  7000,
+		PCIBus:            "0000:01:00.0",
+		UUID:              "GPU-12345678-1234-1234-1234-123456789012",
 	}
-	
+
 	// Validate all fields
 	if gpu.Index != 0 {
 		t.Errorf("Expected Index 0, got %d", gpu.Index)
@@ -175,12 +175,12 @@ func TestGPUDataStructure(t *testing.T) {
 	if gpu.Temperature != 65 {
 		t.Errorf("Expected Temperature 65, got %d", gpu.Temperature)
 	}
-	
+
 	// Test GPUData structure
 	data := types.GPUData{
 		GPUs: []types.GPUInfo{gpu},
 	}
-	
+
 	if len(data.GPUs) != 1 {
 		t.Errorf("Expected 1 GPU, got %d", len(data.GPUs))
 	}
@@ -194,7 +194,7 @@ func TestCollectGPUNoGPUs(t *testing.T) {
 	// This test validates that CollectGPU handles the no-GPU case correctly
 	// by calling the real function (which may or may not find GPUs)
 	data, err := CollectGPU()
-	
+
 	// Either we get an error (no GPUs), or we get valid data
 	if err != nil {
 		// Error case is acceptable - no GPUs found
@@ -243,7 +243,7 @@ func TestGPUMemoryCalculations(t *testing.T) {
 			shouldMatch: false,
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.shouldMatch && tc.total > 0 {
@@ -251,7 +251,7 @@ func TestGPUMemoryCalculations(t *testing.T) {
 					t.Errorf("Memory values don't match: total=%d, used=%d, free=%d", tc.total, tc.used, tc.free)
 				}
 			}
-			
+
 			// Validate no negative values
 			if tc.total > 0 && tc.used > tc.total {
 				t.Errorf("Used memory (%d) exceeds total (%d)", tc.used, tc.total)
@@ -275,7 +275,7 @@ func TestGPUVendorDetection(t *testing.T) {
 		{"GeForce RTX 4090", "NVIDIA"},
 		{"Radeon VII", "AMD"},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.gpuName, func(t *testing.T) {
 			// This is a basic validation that our test expectations make sense
@@ -284,7 +284,10 @@ func TestGPUVendorDetection(t *testing.T) {
 				Name:   tc.gpuName,
 				Vendor: tc.expectedVendor,
 			}
-			
+
+			if gpu.Name != tc.gpuName {
+				t.Errorf("Expected name '%s', got '%s'", tc.gpuName, gpu.Name)
+			}
 			if gpu.Vendor != tc.expectedVendor {
 				t.Errorf("Expected vendor '%s', got '%s'", tc.expectedVendor, gpu.Vendor)
 			}
@@ -300,7 +303,7 @@ func TestGPUIndexing(t *testing.T) {
 		{Index: 1, Name: "GPU 1"},
 		{Index: 2, Name: "GPU 2"},
 	}
-	
+
 	for i, gpu := range gpus {
 		if gpu.Index != i {
 			t.Errorf("GPU %d has incorrect index: %d", i, gpu.Index)

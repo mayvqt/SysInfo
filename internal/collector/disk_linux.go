@@ -16,15 +16,15 @@ import (
 
 // lsblkDevice represents the structure of lsblk JSON output
 type lsblkDevice struct {
-	Name       string        `json:"name"`
-	Type       string        `json:"type"`
-	Size       string        `json:"size"`
-	Model      string        `json:"model"`
-	Serial     string        `json:"serial"`
-	Rota       string        `json:"rota"` // 1 for HDD, 0 for SSD
-	Removable  string        `json:"rm"`   // 1 for removable
-	Tran       string        `json:"tran"` // transport (sata, nvme, usb, etc.)
-	Children   []lsblkDevice `json:"children,omitempty"`
+	Name      string        `json:"name"`
+	Type      string        `json:"type"`
+	Size      string        `json:"size"`
+	Model     string        `json:"model"`
+	Serial    string        `json:"serial"`
+	Rota      string        `json:"rota"` // 1 for HDD, 0 for SSD
+	Removable string        `json:"rm"`   // 1 for removable
+	Tran      string        `json:"tran"` // transport (sata, nvme, usb, etc.)
+	Children  []lsblkDevice `json:"children,omitempty"`
 }
 
 type lsblkOutput struct {
@@ -83,13 +83,14 @@ func collectDisksLsblk() []types.PhysicalDisk {
 		disk.SerialNumber = strings.TrimSpace(device.Serial)
 
 		// Determine disk type (HDD vs SSD)
-		if device.Rota == "1" {
+		switch device.Rota {
+		case "1":
 			disk.Type = "HDD"
 			// Try to get RPM from sysfs
 			if rpm := getDiskRPM(device.Name); rpm > 0 {
 				disk.RPM = rpm
 			}
-		} else if device.Rota == "0" {
+		case "0":
 			// Check if it's NVMe
 			if strings.HasPrefix(device.Name, "nvme") {
 				disk.Type = "NVMe"

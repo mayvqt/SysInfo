@@ -22,12 +22,12 @@ type Display struct {
 }
 
 type DisplayItem struct {
-	Name          string `xml:"key>string"`
-	ChipsetModel  string `xml:"dict>key[.='sppci_model']>string"`
-	VRAMTotal     string `xml:"dict>key[.='sppci_vram']>string"`
-	Vendor        string `xml:"dict>key[.='sppci_vendor']>string"`
-	DeviceID      string `xml:"dict>key[.='sppci_device_id']>string"`
-	BusType       string `xml:"dict>key[.='sppci_bus']>string"`
+	Name         string `xml:"key>string"`
+	ChipsetModel string `xml:"dict>key[.='sppci_model']>string"`
+	VRAMTotal    string `xml:"dict>key[.='sppci_vram']>string"`
+	Vendor       string `xml:"dict>key[.='sppci_vendor']>string"`
+	DeviceID     string `xml:"dict>key[.='sppci_device_id']>string"`
+	BusType      string `xml:"dict>key[.='sppci_bus']>string"`
 }
 
 // collectGPUPlatform implements macOS-specific GPU data collection
@@ -130,7 +130,7 @@ func collectGPUsFromSystemProfilerText() []types.GPUInfo {
 			parts := strings.SplitN(line, ":", 2)
 			if len(parts) == 2 {
 				currentGPU.Name = strings.TrimSpace(parts[1])
-				
+
 				// Determine vendor from name
 				nameLower := strings.ToLower(currentGPU.Name)
 				if strings.Contains(nameLower, "nvidia") {
