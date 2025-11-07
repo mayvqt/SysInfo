@@ -29,6 +29,7 @@ type FileConfig struct {
 		Process bool `yaml:"process,omitempty"`
 		SMART   bool `yaml:"smart,omitempty"`
 		GPU     bool `yaml:"gpu,omitempty"`
+		Battery bool `yaml:"battery,omitempty"`
 	} `yaml:"modules,omitempty"`
 
 	// SMART monitoring configuration
@@ -138,6 +139,9 @@ func (c *Config) MergeWithFileConfig(fileConfig *FileConfig) {
 		}
 		if fileConfig.Modules.GPU {
 			c.Modules.GPU = true
+		}
+		if fileConfig.Modules.Battery {
+			c.Modules.Battery = true
 		}
 	}
 }

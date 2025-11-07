@@ -6,8 +6,9 @@ SysInfo is a comprehensive, cross-platform command-line tool and Go library for 
 
 ## Highlights
 
-- **Comprehensive Data Collection**: CPU, memory modules, disk (with 70+ SMART attributes), network, processes, GPU, and system metadata
+- **Comprehensive Data Collection**: CPU, memory modules, disk (with 70+ SMART attributes), network, processes, GPU, battery, and system metadata
 - **GPU Monitoring**: Detailed GPU information including temperature, utilization, memory usage, and power draw (NVIDIA, AMD, Intel)
+- **Battery Monitoring**: Comprehensive battery information including charge level, health, time remaining, cycle count, temperature, and power consumption (laptops and UPS devices)
 - **SMART Health Monitoring**: Professional-grade disk health assessment with failure prediction and SSD wear tracking
 - **Multiple Output Formats**: `pretty`, `text`, and `json`
 - **Full System Dump**: Single command to capture everything to JSON for analysis
@@ -42,6 +43,9 @@ Examples
 # CPU + memory only, JSON format
 .\\sysinfo.exe --cpu --memory --format json
 
+# Battery information for laptops
+.\\sysinfo.exe --battery
+
 # Comprehensive SMART data with health assessment
 .\\sysinfo.exe --smart --format json
 
@@ -64,6 +68,7 @@ Examples
 - `--process`: process summaries (top by CPU and memory)
 - `--smart`: comprehensive SMART disk data with health assessment (requires elevation)
 - `--gpu`: GPU information including temperature, utilization, memory, and power draw
+- `--battery`: battery information including charge level, health, time remaining, and cycle count
 
 ### Output Options
 - `--format`, `-f`: output format: `pretty|text|json` (default: pretty)
@@ -100,6 +105,7 @@ modules:
   process: true
   smart: false  # Requires root/admin
   gpu: true
+  battery: true
 
 # SMART monitoring configuration
 smart:

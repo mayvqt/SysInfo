@@ -73,5 +73,13 @@ func Collect(cfg *config.Config) (*types.SystemInfo, error) {
 		}
 	}
 
+	// Collect battery information
+	if cfg.ShouldCollect("battery") {
+		info.Battery, err = CollectBattery()
+		if err != nil && cfg.Verbose {
+			fmt.Fprintf(os.Stderr, "Error collecting battery info: %v\n", err)
+		}
+	}
+
 	return info, nil
 }

@@ -24,6 +24,7 @@ modules:
   process: true
   smart: false  # SMART requires root/admin on most systems
   gpu: true
+  battery: true
 
 # SMART monitoring configuration
 smart:

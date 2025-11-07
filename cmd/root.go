@@ -46,6 +46,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&cfg.Modules.Process, "process", false, "Collect process information")
 	rootCmd.Flags().BoolVar(&cfg.Modules.SMART, "smart", false, "Collect SMART disk data (may require elevated privileges)")
 	rootCmd.Flags().BoolVar(&cfg.Modules.GPU, "gpu", false, "Collect GPU information")
+	rootCmd.Flags().BoolVar(&cfg.Modules.Battery, "battery", false, "Collect battery information")
 }
 
 func Execute() error {
@@ -69,7 +70,7 @@ func runSysInfo(cmd *cobra.Command, args []string) error {
 
 	// If any specific module is selected, disable --all
 	if cfg.Modules.System || cfg.Modules.CPU || cfg.Modules.Memory ||
-		cfg.Modules.Disk || cfg.Modules.Network || cfg.Modules.Process || cfg.Modules.SMART || cfg.Modules.GPU {
+		cfg.Modules.Disk || cfg.Modules.Network || cfg.Modules.Process || cfg.Modules.SMART || cfg.Modules.GPU || cfg.Modules.Battery {
 		cfg.Modules.All = false
 	}
 
