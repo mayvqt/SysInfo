@@ -7,11 +7,12 @@ SysInfo is a comprehensive, cross-platform command-line tool and Go library for 
 ## Highlights
 
 - **Comprehensive Data Collection**: CPU, memory modules, disk (with 70+ SMART attributes), network, processes, GPU, battery, and system metadata
+- **Advanced SMART Analysis**: Predictive failure detection, historical tracking with trend analysis, and webhook alerting system
 - **GPU Monitoring**: Detailed GPU information including temperature, utilization, memory usage, and power draw (NVIDIA, AMD, Intel)
 - **Battery Monitoring**: Comprehensive battery information including charge level, health, time remaining, cycle count, temperature, and power consumption (laptops and UPS devices)
-- **SMART Health Monitoring**: Professional-grade disk health assessment with failure prediction and SSD wear tracking
 - **Multiple Output Formats**: `pretty`, `text`, and `json`
 - **Full System Dump**: Single command to capture everything to JSON for analysis
+- **Configuration File Support**: YAML/TOML config with sensible defaults
 - **Single Binary**: Easy deployment and automation
 - **Cross-platform**: Linux, macOS, and Windows (with platform-optimized collectors)
 
@@ -81,15 +82,15 @@ sudo sysinfo smart check
 
 ### SMART Analysis Options
 Use the `smart` subcommand for advanced disk health monitoring:
-- `sysinfo smart analyze`: Deep SMART analysis with failure prediction and history tracking
-- `sysinfo smart history`: View historical trends and patterns
-- `sysinfo smart check`: Quick health check (no history storage)
+- `sysinfo smart analyze`: Deep SMART analysis with failure prediction, SSD wear tracking, and history storage
+- `sysinfo smart history`: View historical trends, temperature patterns, and wear rate analysis
+- `sysinfo smart check`: Quick health check for all drives (no history storage, perfect for monitoring scripts)
 
 **Flags:**
-- `--db <path>`: Custom database path
-- `--period <duration>`: History period for `history` command (e.g., 1h, 24h, 7d, 30d)
-- `--alerts`: Enable webhook notifications (for `analyze` command)
-- `--verbose`: Show detailed progress
+- `--db <path>`: Custom database path for history storage
+- `--period <duration>`: History period for `history` command (e.g., 1h, 24h, 7d, 30d, default: 7d)
+- `--alerts`: Enable webhook notifications for critical events (configure in config file)
+- `--verbose`: Show detailed progress and diagnostics
 
 ### Output Options
 - `--format`, `-f`: output format: `pretty|text|json` (default: pretty)
@@ -131,9 +132,20 @@ modules:
 # SMART monitoring configuration
 smart:
   enable_alerts: false
+  database_path: "~/.config/sysinfo/smart.db"
   alert_thresholds:
     temperature_critical: 70  # Celsius
     temperature_warning: 60   # Celsius
+    wear_critical: 90.0       # SSD wear percentage
+    wear_warning: 80.0        # SSD wear percentage
+
+# SMART webhook alerts (requires enable_alerts: true)
+smart_alerts:
+  enabled: false
+  webhook_url: "https://your-webhook.example.com/alerts"
+  min_level: "WARNING"  # INFO, WARNING, or CRITICAL
+  cooldown: 60          # minutes between alerts for same device/issue
+  timeout: 10           # seconds (webhook request timeout)
 
 # Process monitoring
 process:
@@ -207,6 +219,9 @@ sudo sysinfo smart analyze
 # Enable webhook alerts for critical issues
 sudo sysinfo smart analyze --alerts
 
+# Use custom database location
+sudo sysinfo smart analyze --db /var/lib/sysinfo/smart.db
+
 # Example output:
 # /dev/sda
 # ======================================================================
@@ -219,8 +234,10 @@ sudo sysinfo smart analyze --alerts
 #   Percent Used: 12.7%
 #   Estimated Remaining: 1,247 days (3.4 years)
 #
+# Issues Detected: 0
+#
 # Recommendations:
-#   • Continue monitoring drive health
+#   • Drive health is good - continue monitoring
 #   • Schedule backup within 90 days
 ```
 
@@ -267,16 +284,49 @@ sudo sysinfo smart check
 #   webhook_url: "https://your-webhook.example.com/alerts"
 #   min_level: "WARNING"  # INFO, WARNING, or CRITICAL
 #   cooldown: 60  # minutes between alerts for same device
+#   timeout: 10   # seconds
+```
+
+**Alert Webhook Payload** (JSON):
+```json
+{
+  "timestamp": "2025-11-07T14:30:00Z",
+  "device": "/dev/sda",
+  "level": "CRITICAL",
+  "health_status": "CRITICAL",
+  "failure_probability": 87.2,
+  "issues": [
+    {
+      "severity": "CRITICAL",
+      "code": "REALLOCATED_SECTORS",
+      "description": "Drive has 150 reallocated sectors",
+      "attribute_id": 5
+    }
+  ],
+  "recommendations": [
+    "URGENT: Back up all data immediately",
+    "Schedule drive replacement as soon as possible"
+  ]
+}
 ```
 
 **Features**:
 - **Health Classification**: GOOD, WARNING, CRITICAL, FAILING, UNKNOWN
-- **Temperature Monitoring**: Configurable warning (60°C) and critical (70°C) thresholds
-- **SSD Lifespan Estimation**: Calculates remaining lifetime based on wear metrics
-- **Trend Analysis**: Tracks temperature, health degradation, and wear rate over time
-- **Webhook Alerts**: JSON notifications for critical events (failure predictions, high wear, temperature)
-- **SQLite History**: Automatic tracking of SMART metrics with configurable retention
-- **Zero Configuration**: Works out-of-box with sensible defaults
+- **Predictive Analysis**: Calculates failure probability (0-100%) based on SMART attributes, temperature, and wear
+- **Temperature Monitoring**: Configurable warning (60°C) and critical (70°C) thresholds with trend tracking
+- **SSD Lifespan Estimation**: Calculates remaining lifetime based on wear metrics and usage patterns
+- **Trend Analysis**: Tracks temperature changes, health degradation, and wear rate over time
+- **Webhook Alerts**: Configurable JSON notifications for critical events (failure predictions, high wear, temperature issues)
+- **SQLite History**: Automatic tracking of SMART metrics with configurable retention and cleanup
+- **Intelligent Alerting**: Cooldown periods prevent alert fatigue, minimum severity levels filter noise
+- **Zero Configuration**: Works out-of-box with sensible defaults, fully customizable via config file
+
+**Analysis Capabilities**:
+- Critical attribute detection (reallocated sectors, pending sectors, uncorrectable errors)
+- Pre-fail attribute threshold monitoring with early warning
+- SSD-specific wear leveling and program/erase cycle tracking
+- Temperature anomaly detection and historical comparison
+- Multi-vendor SMART attribute support (WD, Seagate, Samsung, Intel, Crucial, etc.)
 
 **Custom Database Path**:
 ```bash
@@ -295,6 +345,51 @@ sudo sysinfo smart check
 # ✗ /dev/sdb            CRITICAL [FAILURE PREDICTED: 87.2%]
 #
 # ⚠ Issues detected - run 'sysinfo smart analyze' for details
+```
+
+## Integration & Automation
+
+SysInfo is designed for easy integration into monitoring systems and automation workflows:
+
+**Cron/Scheduled Tasks**:
+```bash
+# Daily SMART analysis with webhook alerts (crontab)
+0 2 * * * /usr/local/bin/sysinfo smart analyze --alerts >> /var/log/sysinfo.log 2>&1
+
+# Hourly quick health check
+0 * * * * /usr/local/bin/sysinfo smart check || echo "SMART check failed" | mail -s "Disk Alert" admin@example.com
+```
+
+**Monitoring Scripts**:
+```bash
+#!/bin/bash
+# Check disk health and exit with error code if issues found
+sysinfo smart check --format json > /tmp/smart_status.json
+if [ $? -ne 0 ]; then
+    # Send alert, page admin, etc.
+    curl -X POST https://monitoring.example.com/alert \
+        -H "Content-Type: application/json" \
+        -d @/tmp/smart_status.json
+    exit 1
+fi
+```
+
+**JSON API Integration**:
+```bash
+# Export full system info as JSON for ingestion
+sysinfo --all --format json --output /var/www/api/sysinfo.json
+
+# SMART analysis JSON output for monitoring systems
+sysinfo smart analyze --format json | jq '.results[] | select(.overall_health != "GOOD")'
+```
+
+**Docker/Container Monitoring**:
+```dockerfile
+# Include in container health checks
+FROM alpine:latest
+COPY sysinfo /usr/local/bin/
+HEALTHCHECK --interval=5m --timeout=10s \
+  CMD sysinfo smart check || exit 1
 ```
 
 ## GPU Information Features
