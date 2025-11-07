@@ -227,7 +227,7 @@ func TestCollectSMARTData(t *testing.T) {
 
 	if data == nil {
 		t.Error("Expected non-nil data even on error")
+	} else {
+		t.Logf("Collected SMART data for %d devices", len(data.SMARTData))
 	}
-
-	t.Logf("Collected SMART data for %d devices", len(data.SMARTData))
 }

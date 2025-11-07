@@ -129,7 +129,11 @@ func (h *HistoryDB) RecordAnalysis(smart *types.SMARTInfo, result *AnalysisResul
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+			// Transaction was already committed or rolled back
+		}
+	}()
 
 	// Count issues by severity
 	criticalCount := 0
