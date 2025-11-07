@@ -1,0 +1,49 @@
+# SysInfo Configuration File
+# Place this file in one of these locations:
+#   - ./.sysinforc
+#   - ./.sysinfo.yaml
+#   - ~/.config/sysinfo/config.yaml
+#   - ~/.sysinforc
+
+# Default output format: json, text, or pretty
+format: pretty
+
+# Default output file (leave empty for stdout)
+# output_file: /var/log/sysinfo.json
+
+# Enable verbose output
+verbose: false
+
+# Default modules to collect (when no flags are specified)
+modules:
+  system: true
+  cpu: true
+  memory: true
+  disk: true
+  network: true
+  process: true
+  smart: false  # SMART requires root/admin on most systems
+  gpu: true
+
+# SMART monitoring configuration
+smart:
+  # Enable alerts for SMART issues
+  enable_alerts: false
+  
+  # Alert thresholds
+  alert_thresholds:
+    temperature_critical: 70  # Celsius
+    temperature_warning: 60   # Celsius
+  
+  # Webhook URL for alerts (optional)
+  # webhook_url: https://example.com/webhook
+
+# Process monitoring configuration
+process:
+  # Number of top processes to show
+  top_count: 10
+
+# Display preferences
+display:
+  # Force ASCII output instead of Unicode box drawing
+  use_ascii: false

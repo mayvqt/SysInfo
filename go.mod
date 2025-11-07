@@ -21,4 +21,5 @@ require (
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	golang.org/x/sys v0.37.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

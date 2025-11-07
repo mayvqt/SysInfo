@@ -70,8 +70,54 @@ Examples
 - `--output`, `-o`: write output to file instead of stdout
 - `--verbose`, `-v`: enable verbose logging
 - `--full-dump`: collect ALL system info and save to `sysinfo_dump.json` (includes everything)
+- `--config`: specify custom config file path (default: auto-detect)
 
 Run `--help` for the complete flag list and examples.
+
+## Configuration File
+
+SysInfo supports configuration files for persistent settings. Create a configuration file in one of these locations:
+- `./.sysinforc` (current directory)
+- `./.sysinfo.yaml` (current directory)
+- `~/.config/sysinfo/config.yaml` (user config directory)
+- `~/.sysinforc` (home directory)
+
+**Example Configuration** (see `.sysinforc.example`):
+```yaml
+# Default output format: json, text, or pretty
+format: pretty
+
+# Enable verbose output
+verbose: false
+
+# Default modules to collect (when no flags are specified)
+modules:
+  system: true
+  cpu: true
+  memory: true
+  disk: true
+  network: true
+  process: true
+  smart: false  # Requires root/admin
+  gpu: true
+
+# SMART monitoring configuration
+smart:
+  enable_alerts: false
+  alert_thresholds:
+    temperature_critical: 70  # Celsius
+    temperature_warning: 60   # Celsius
+
+# Process monitoring
+process:
+  top_count: 10  # Number of top processes to show
+
+# Display preferences
+display:
+  use_ascii: false  # Force ASCII instead of Unicode
+```
+
+**Note**: Command-line flags take precedence over configuration file settings.
 
 ## SMART Data Features
 

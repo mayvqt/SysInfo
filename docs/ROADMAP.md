@@ -56,12 +56,14 @@ This document tracks planned improvements and upgrades for the SysInfo project. 
 
 ### Configuration & Customization
 
-- [ ] **Configuration File Support**
-  - `.sysinforc` or `sysinfo.yaml` support
+- [x] **Configuration File Support** ✅ Completed
+  - `.sysinforc` or `.sysinfo.yaml` support
   - Persist default output format
   - Default modules to collect
-  - Custom monitoring intervals
-  - Output file templates
+  - SMART monitoring configuration
+  - Process top count configuration
+  - Display preferences (ASCII mode)
+  - Files: `loader.go`, `loader_test.go`, `.sysinforc.example`
 
 - [ ] **Custom Formatters/Templates**
   - `--template custom.tmpl` using Go templates
@@ -200,7 +202,7 @@ This document tracks planned improvements and upgrades for the SysInfo project. 
 3. ✅ Complete Physical Disk Collection - **COMPLETED**
 
 ### Phase 2 (Next Sprint)
-1. Configuration File Support
+1. ✅ Configuration File Support - **COMPLETED**
 2. Enhanced SMART Analysis
 3. Battery Information Module
 
